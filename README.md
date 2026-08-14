@@ -23,7 +23,7 @@ O projeto foi criado para a Fase 2 do desafio técnico da Solasstec. A especific
 Repositório oficial: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 
 > [!IMPORTANT]
-> O repositório ainda está em desenvolvimento. A infraestrutura do monorepo está preparada, mas os módulos de domínio e as rotas descritas como **planejadas** ainda serão implementados. Atualmente a API expõe apenas `GET /` e o frontend contém a página inicial do Next.js.
+> O repositório ainda está em desenvolvimento. A base do backend, o schema inicial e o health check já estão implementados; os módulos de visitantes, salas, feriados e agendamentos permanecem planejados. O frontend ainda contém a página inicial do Next.js.
 
 ## Sumário
 
@@ -31,7 +31,7 @@ Repositório oficial: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 - [Regras de negócio](#regras-de-negócio)
 - [Tecnologias](#tecnologias)
 - [Arquitetura](#arquitetura)
-- [Contrato planejado da API](#contrato-planejado-da-api)
+- [Contrato da API](#contrato-da-api)
 - [Como executar](#como-executar)
 - [Docker](#docker)
 - [Variáveis de ambiente](#variáveis-de-ambiente)
@@ -78,6 +78,8 @@ Repositório oficial: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 ## Arquitetura
 
 O repositório usa um monorepo pnpm com aplicações independentes e uma orquestração Docker na raiz.
+
+O schema Prisma mapeia o schema PostgreSQL `desafio` e foi modelado a partir do dump oficial disponível em [`api/src/database/dumps/20260806_desafio (1).sql`](api/src/database/dumps/20260806_desafio%20(1).sql). Nomes físicos, tipos, relações e índices do dump são preservados com `@map`, `@@map` e `@@schema`.
 
 ```text
 solasstec-portaria/
@@ -126,12 +128,21 @@ api/
 |   |-- database/prisma/
 |   |   |-- prisma.module.ts
 |   |   `-- prisma.service.ts
-|   |-- modules/
-|   |   |-- health/
-|   |   |-- visitors/
-|   |   |-- rooms/
-|   |   |-- holidays/
-|   |   `-- appointments/
+|   |-- v1/
+|   |   `-- modules/
+|   |       |-- health/
+|   |       |   |-- dto/
+|   |       |   |-- repositories/
+|   |       |   |-- test/
+|   |       |   |   |-- unit/
+|   |       |   |   `-- e2e/
+|   |       |   |-- health.controller.ts
+|   |       |   |-- health.service.ts
+|   |       |   `-- health.module.ts
+|   |       |-- visitors/
+|   |       |-- rooms/
+|   |       |-- holidays/
+|   |       `-- appointments/
 |   |-- app.module.ts
 |   `-- main.ts
 |-- Dockerfile
@@ -139,6 +150,8 @@ api/
 |-- .env.example
 `-- package.json
 ```
+
+Imports entre camadas usam os aliases `@/` para `api/src` e `@generated/` para o Prisma Client. Imports internos do mesmo módulo permanecem relativos.
 
 ### Frontend
 
@@ -176,9 +189,9 @@ web/
 `-- package.json
 ```
 
-## Contrato planejado da API
+## Contrato da API
 
-Quando os módulos forem implementados, a API usará o prefixo `/api/v1`. A documentação Swagger será disponibilizada em `/docs`.
+A API usa o prefixo `/api/v1` e disponibiliza sua documentação Swagger em `/docs`. O health check está implementado; as demais rotas abaixo representam o contrato planejado para os próximos módulos.
 
 ### Saúde
 
@@ -250,9 +263,11 @@ Uma tentativa inválida de agendamento deverá responder com `422 Unprocessable 
   "statusCode": 422,
   "code": "APPOINTMENT_UNAVAILABLE",
   "message": "A sala não está disponível no período solicitado.",
-  "suggestion": {
-    "startsAt": "2026-08-17T09:00:00.000Z",
-    "endsAt": "2026-08-17T10:00:00.000Z"
+  "details": {
+    "suggestion": {
+      "startsAt": "2026-08-17T09:00:00.000Z",
+      "endsAt": "2026-08-17T10:00:00.000Z"
+    }
   }
 }
 ```
@@ -294,6 +309,7 @@ Com um PostgreSQL disponível, gere o Prisma Client e prepare o banco:
 ```bash
 pnpm db:generate
 pnpm db:migrate
+pnpm db:seed
 ```
 
 Inicie API e frontend simultaneamente:
@@ -305,9 +321,9 @@ pnpm dev
 | Serviço | Endereço |
 | --- | --- |
 | Frontend | <http://localhost:3000> |
-| API atual | <http://localhost:3001> |
-| API planejada | <http://localhost:3001/api/v1> |
-| Swagger planejado | <http://localhost:3001/docs> |
+| Health check | <http://localhost:3001/api/v1/health> |
+| API | <http://localhost:3001/api/v1> |
+| Swagger | <http://localhost:3001/docs> |
 | Prisma Studio | <http://localhost:5555> após executar `pnpm db:studio` |
 
 ## Docker
@@ -337,8 +353,6 @@ docker compose down --volumes
 > [!WARNING]
 > `docker compose down --volumes` também remove os dados locais do PostgreSQL.
 
-O Compose possui valores seguros apenas para desenvolvimento. Em outros ambientes, informe `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`, `POSTGRES_PORT`, `API_PORT`, `WEB_PORT`, `CORS_ORIGIN` e `NEXT_PUBLIC_API_URL` pelo shell ou pela plataforma de deploy.
-
 ### Imagem da API
 
 O contexto de build deve ser a raiz para que o Docker tenha acesso ao lockfile do monorepo:
@@ -347,7 +361,7 @@ O contexto de build deve ser a raiz para que o Docker tenha acesso ao lockfile d
 docker build -f api/Dockerfile -t solasstec-portaria-api .
 docker run --rm -p 3001:3001 \
   -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/solasstec_portaria?schema=public" \
-  -e CORS_ORIGIN="http://localhost:3000" \
+  -e CORS_ORIGIN \
   solasstec-portaria-api
 ```
 
@@ -373,8 +387,11 @@ Use [`api/.env.example`](api/.env.example) como modelo.
 | --- | --- | --- | --- |
 | `NODE_ENV` | Não | `development` | Ambiente da aplicação |
 | `PORT` | Não | `3001` | Porta HTTP da API |
-| `CORS_ORIGIN` | Não | `http://localhost:3000` | Origens permitidas, separadas por vírgula |
+| `API_PREFIX` | Não | `api/v1` | Prefixo global das rotas |
+| `CORS_ORIGIN` | Não | nenhuma | Origens permitidas, separadas por vírgula |
 | `DATABASE_URL` | Sim | - | Connection string PostgreSQL usada pelo Prisma |
+| `SWAGGER_ENABLED` | Não | `true` | Habilita a documentação OpenAPI |
+| `SWAGGER_PATH` | Não | `docs` | Caminho da interface Swagger |
 
 ### Web: `web/.env.local`
 
@@ -383,6 +400,9 @@ Use [`web/.env.example`](web/.env.example) como modelo.
 | Variável | Obrigatória | Padrão | Descrição |
 | --- | --- | --- | --- |
 | `NEXT_PUBLIC_API_URL` | Sim | `http://localhost:3001/api/v1` | URL pública da API usada pelo navegador |
+
+> [!NOTE]
+> Variáveis `NEXT_PUBLIC_*` são incorporadas ao JavaScript do navegador e nunca devem conter segredos.
 
 ## Scripts
 
@@ -399,6 +419,7 @@ Use [`web/.env.example`](web/.env.example) como modelo.
 | `pnpm db:generate` | Gera o Prisma Client |
 | `pnpm db:migrate` | Cria/aplica migrations no ambiente de desenvolvimento |
 | `pnpm db:deploy` | Aplica migrations existentes em produção |
+| `pnpm db:seed` | Cadastra os tipos iniciais de prioridade |
 | `pnpm db:studio` | Abre o Prisma Studio |
 | `pnpm docker:up` | Constrói e inicia toda a stack |
 | `pnpm docker:down` | Encerra a stack |
@@ -426,7 +447,7 @@ Use [`web/.env.example`](web/.env.example) como modelo.
 
 ## Testes e qualidade
 
-A arquitetura planejada mantém testes próximos aos módulos e componentes:
+A base atual inclui testes unitários do health service/controller e um teste HTTP e2e do endpoint. A cobertura planejada para os próximos módulos inclui:
 
 - Testes unitários de controllers, services e regras de disponibilidade.
 - Testes e2e dos endpoints da API.
@@ -448,8 +469,9 @@ pnpm build
 - [x] Containers individuais e Docker Compose com PostgreSQL.
 - [x] Exemplos de ambiente separados por aplicação.
 - [x] Scripts globais de desenvolvimento, build e banco.
-- [ ] Configuração global da API, validação de ambiente e Swagger.
-- [ ] Modelagem Prisma, migrations e seed.
+- [x] Configuração global da API, validação de ambiente e Swagger.
+- [x] Modelagem Prisma, migration inicial e seed.
+- [x] Módulo Prisma por injeção de dependência e health check.
 - [ ] Módulo de visitantes e cálculo de prioridade.
 - [ ] Módulo de salas e históricos.
 - [ ] Módulo de feriados.

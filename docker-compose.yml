@@ -2,6 +2,7 @@ name: solasstec-portaria
 
 services:
   database:
+    container_name: solasstec-portaria-database
     image: postgres:17-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-solasstec_portaria}
@@ -19,27 +20,32 @@ services:
     restart: unless-stopped
 
   api:
+    container_name: solasstec-portaria-api
     build:
       context: .
       dockerfile: api/Dockerfile
     environment:
       NODE_ENV: production
       PORT: 3001
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@database:5432/${POSTGRES_DB:-solasstec_portaria}?schema=public
+      API_PREFIX: api/v1
+      CORS_ORIGIN: ${CORS_ORIGIN:-}
+      SWAGGER_ENABLED: "true"
+      SWAGGER_PATH: docs
+      DATABASE_URL: ${API_DATABASE_URL:-postgresql://postgres:postgres@database:5432/solasstec_portaria?schema=public}
     ports:
       - "${API_PORT:-3001}:3001"
     depends_on:
       database:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:3001').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/v1/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
       interval: 10s
       timeout: 5s
       retries: 10
     restart: unless-stopped
 
   web:
+    container_name: solasstec-portaria-web
     build:
       context: .
       dockerfile: web/Dockerfile
