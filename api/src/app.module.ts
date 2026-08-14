@@ -5,6 +5,7 @@ import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from '@/common/interceptors/request-logging.interceptor';
 import { configuration } from '@/config/configuration';
 import { envValidationSchema } from '@/config/env.validation';
+import { HealthModule } from '@/v1/modules/health/health.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { envValidationSchema } from '@/config/env.validation';
       validationSchema: envValidationSchema,
       validationOptions: { abortEarly: false },
     }),
+    HealthModule,
   ],
   providers: [
     {
