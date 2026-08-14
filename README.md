@@ -313,10 +313,10 @@ pnpm dev
 
 | Serviço | Endereço |
 | --- | --- |
-| Frontend | <http://localhost:3000> |
-| Health check | <http://localhost:3001/api/v1/health> |
-| API | <http://localhost:3001/api/v1> |
-| Swagger | <http://localhost:3001/docs> |
+| Frontend | <http://localhost:3001> |
+| Health check | <http://localhost:3333/api/v1/health> |
+| API | <http://localhost:3333/api/v1> |
+| Swagger | <http://localhost:3333/docs> |
 | Prisma Studio | <http://localhost:5555> após executar `pnpm db:studio` |
 
 ## Docker
@@ -352,7 +352,7 @@ O contexto de build deve ser a raiz para que o Docker tenha acesso ao lockfile d
 
 ```bash
 docker build -f api/Dockerfile -t solasstec-portaria-api .
-docker run --rm -p 3001:3001 \
+docker run --rm -p 3333:3333 \
   -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/solasstec_portaria?schema=public" \
   -e CORS_ORIGIN \
   solasstec-portaria-api
@@ -365,8 +365,8 @@ A URL da API é informada em runtime e consultada apenas pelo servidor Next.js. 
 ```bash
 docker build -f web/Dockerfile -t solasstec-portaria-web .
 
-docker run --rm -p 3000:3000 \
-  -e API_URL="http://host.docker.internal:3001/api/v1" \
+docker run --rm -p 3001:3001 \
+  -e API_URL="http://host.docker.internal:3333/api/v1" \
   solasstec-portaria-web
 ```
 
@@ -379,7 +379,7 @@ Use [`api/.env.example`](api/.env.example) como modelo.
 | Variável | Obrigatória | Padrão | Descrição |
 | --- | --- | --- | --- |
 | `NODE_ENV` | Não | `development` | Ambiente da aplicação |
-| `PORT` | Não | `3001` | Porta HTTP da API |
+| `PORT` | Não | `3333` | Porta HTTP da API |
 | `API_PREFIX` | Não | `api/v1` | Prefixo global das rotas |
 | `CORS_ORIGIN` | Não | nenhuma | Origens permitidas, separadas por vírgula |
 | `DATABASE_URL` | Sim | - | Connection string PostgreSQL usada pelo Prisma |
@@ -392,7 +392,7 @@ Use [`web/.env.example`](web/.env.example) como modelo.
 
 | Variável | Obrigatória | Padrão | Descrição |
 | --- | --- | --- | --- |
-| `API_URL` | Sim | `http://localhost:3001/api/v1` | URL interna da API usada pelos Server Components |
+| `API_URL` | Sim | `http://localhost:3333/api/v1` | URL interna da API usada pelos Server Components |
 
 > [!NOTE]
 > `API_URL` não usa o prefixo `NEXT_PUBLIC_` e permanece disponível apenas no servidor Next.js. No Docker Compose, ela aponta para a API pela rede interna.

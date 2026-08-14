@@ -10,6 +10,8 @@ O frontend ainda utilizava a página inicial padrão do Next.js e não validava 
 - Substitui o template inicial por uma tela responsiva de diagnóstico da integração.
 - Consulta `GET /api/v1/health` em um Server Component com renderização dinâmica e sem cache.
 - Mantém `API_URL` restrita ao servidor e usa a rede interna do Docker Compose em produção.
+- Padroniza o frontend na porta `3001` e o backend na porta `3333`.
+- Corrige a imagem standalone do Next.js para incluir os helpers SWC exigidos em runtime.
 - Exibe estado operacional, latência do PostgreSQL, uptime e horário da verificação.
 - Permite solicitar uma nova leitura por `router.refresh()` sem mover o acesso à API para o navegador.
 - Adiciona testes unitários para sucesso, falha de rede e configuração ausente.

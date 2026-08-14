@@ -2,7 +2,7 @@ export const configuration = () => ({
   app: {
     name: 'solasstec-portaria-api',
     environment: process.env.NODE_ENV ?? 'development',
-    port: Number(process.env.PORT ?? 3001),
+    port: Number(process.env.PORT ?? 3333),
     apiPrefix: (process.env.API_PREFIX ?? 'api/v1')
       .trim()
       .replace(/^\/+|\/+$/g, ''),

@@ -26,7 +26,7 @@ RUN pnpm --filter web build
 FROM node:24-alpine AS runner
 
 ENV NODE_ENV=production
-ENV PORT=3000
+ENV PORT=3001
 ENV HOSTNAME=0.0.0.0
 
 WORKDIR /app
@@ -37,9 +37,11 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /workspace/web/public ./web/public
 COPY --from=builder --chown=nextjs:nodejs /workspace/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /workspace/web/.next/static ./web/.next/static
+# Next's standalone tracer preserves the pnpm link but omits the helper files.
+COPY --from=builder --chown=nextjs:nodejs /workspace/node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers ./node_modules/.pnpm/@swc+helpers@0.5.23/node_modules/@swc/helpers
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["node", "web/server.js"]
