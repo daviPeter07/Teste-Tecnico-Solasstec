@@ -190,7 +190,7 @@ A API usa o prefixo `/api/v1` e disponibiliza sua documentação Swagger em `/do
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `GET` | `/api/v1/health` | Verifica a disponibilidade da API e do banco |
+| `GET` | `/api/v1/health` | Verifica a conexão e retorna uma mensagem sobre o banco |
 
 ### Visitantes
 

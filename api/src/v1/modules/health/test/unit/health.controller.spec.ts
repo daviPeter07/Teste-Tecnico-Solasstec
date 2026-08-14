@@ -5,16 +5,7 @@ import { HealthService } from '../../health.service';
 describe('HealthController', () => {
   let controller: HealthController;
   const healthResponse = {
-    status: 'ok' as const,
-    service: 'solasstec-portaria-api',
-    timestamp: '2026-08-14T17:30:00.000Z',
-    uptimeSeconds: 120,
-    checks: {
-      database: {
-        status: 'up' as const,
-        latencyMs: 2,
-      },
-    },
+    message: 'Banco de dados conectado.',
   };
   const healthService = {
     check: jest.fn().mockResolvedValue(healthResponse),

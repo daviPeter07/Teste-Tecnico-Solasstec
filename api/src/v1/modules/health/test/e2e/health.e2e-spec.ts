@@ -40,12 +40,8 @@ describe('Health (e2e)', () => {
       .get('/api/v1/health')
       .expect(200);
 
-    expect(response.body).toMatchObject({
-      status: 'ok',
-      service: 'solasstec-portaria-api',
-      checks: {
-        database: { status: 'up' },
-      },
+    expect(response.body).toEqual({
+      message: 'Banco de dados conectado.',
     });
   });
 
@@ -59,11 +55,8 @@ describe('Health (e2e)', () => {
     expect(response.body).toMatchObject({
       statusCode: 503,
       code: 'DATABASE_UNAVAILABLE',
-      message: 'Database is unavailable.',
+      message: 'Banco de dados não conectado.',
       path: '/api/v1/health',
-      details: {
-        database: { status: 'down' },
-      },
     });
   });
 });

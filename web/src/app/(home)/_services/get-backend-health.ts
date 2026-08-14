@@ -3,41 +3,21 @@ import "server-only";
 import { z } from "zod";
 
 const healthResponseSchema = z.object({
-  status: z.literal("ok"),
-  service: z.string(),
-  timestamp: z.string(),
-  uptimeSeconds: z.number(),
-  checks: z.object({
-    database: z.object({
-      status: z.literal("up"),
-      latencyMs: z.number(),
-    }),
-  }),
+  message: z.literal("Banco de dados conectado."),
 });
 
-export type BackendHealthResult =
-  | {
-    connected: true;
-    checkedAt: string;
-    databaseLatencyMs: number;
-    service: string;
-    uptimeSeconds: number;
-  }
-  | {
-    connected: false;
-    checkedAt: string;
-    reason: string;
-  };
+export interface BackendHealthResult {
+  connected: boolean;
+  message: string;
+}
 
 export async function getBackendHealth(): Promise<BackendHealthResult> {
-  const checkedAt = new Date().toISOString();
   const apiUrl = process.env.API_URL?.replace(/\/$/, "");
 
   if (!apiUrl) {
     return {
       connected: false,
-      checkedAt,
-      reason: "A URL interna da API não foi configurada.",
+      message: "Banco de dados não conectado.",
     };
   }
 
@@ -51,8 +31,7 @@ export async function getBackendHealth(): Promise<BackendHealthResult> {
     if (!response.ok) {
       return {
         connected: false,
-        checkedAt,
-        reason: "A API respondeu, mas não está disponível para operação.",
+        message: "Banco de dados não conectado.",
       };
     }
 
@@ -61,23 +40,18 @@ export async function getBackendHealth(): Promise<BackendHealthResult> {
     if (!parsedHealth.success) {
       return {
         connected: false,
-        checkedAt,
-        reason: "A API respondeu em um formato inesperado.",
+        message: "Banco de dados não conectado.",
       };
     }
 
     return {
       connected: true,
-      checkedAt,
-      databaseLatencyMs: parsedHealth.data.checks.database.latencyMs,
-      service: parsedHealth.data.service,
-      uptimeSeconds: parsedHealth.data.uptimeSeconds,
+      message: parsedHealth.data.message,
     };
   } catch {
     return {
       connected: false,
-      checkedAt,
-      reason: "Não foi possível estabelecer comunicação com a API.",
+      message: "Banco de dados não conectado.",
     };
   }
 }

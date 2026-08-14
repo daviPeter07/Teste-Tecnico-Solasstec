@@ -1,5 +1,4 @@
 import { ServiceUnavailableException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthService } from '../../health.service';
 import { HealthRepository } from '../../repositories/health.repository';
@@ -20,27 +19,17 @@ describe('HealthService', () => {
           provide: HealthRepository,
           useValue: healthRepository,
         },
-        {
-          provide: ConfigService,
-          useValue: {
-            getOrThrow: jest.fn().mockReturnValue('solasstec-portaria-api'),
-          },
-        },
       ],
     }).compile();
 
     service = module.get(HealthService);
   });
 
-  it('returns the API and database status', async () => {
+  it('returns a message when the database is connected', async () => {
     healthRepository.pingDatabase.mockResolvedValue();
 
-    await expect(service.check()).resolves.toMatchObject({
-      status: 'ok',
-      service: 'solasstec-portaria-api',
-      checks: {
-        database: { status: 'up' },
-      },
+    await expect(service.check()).resolves.toEqual({
+      message: 'Banco de dados conectado.',
     });
   });
 

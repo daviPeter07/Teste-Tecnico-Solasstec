@@ -22,24 +22,16 @@ describe("getBackendHealth", () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(
         JSON.stringify({
-          status: "ok",
-          service: "solasstec-portaria-api",
-          timestamp: "2026-08-14T20:00:00.000Z",
-          uptimeSeconds: 120,
-          checks: {
-            database: { status: "up", latencyMs: 8 },
-          },
+          message: "Banco de dados conectado.",
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       ),
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(getBackendHealth()).resolves.toMatchObject({
+    await expect(getBackendHealth()).resolves.toEqual({
       connected: true,
-      databaseLatencyMs: 8,
-      service: "solasstec-portaria-api",
-      uptimeSeconds: 120,
+      message: "Banco de dados conectado.",
     });
     expect(fetchMock).toHaveBeenCalledWith(
       "http://api.test/api/v1/health",
@@ -51,9 +43,9 @@ describe("getBackendHealth", () => {
     process.env.API_URL = "http://api.test/api/v1";
     vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockRejectedValue(new Error("ECONNREFUSED")));
 
-    await expect(getBackendHealth()).resolves.toMatchObject({
+    await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      reason: "Não foi possível estabelecer comunicação com a API.",
+      message: "Banco de dados não conectado.",
     });
   });
 
@@ -64,9 +56,9 @@ describe("getBackendHealth", () => {
       vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 503 })),
     );
 
-    await expect(getBackendHealth()).resolves.toMatchObject({
+    await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      reason: "A API respondeu, mas não está disponível para operação.",
+      message: "Banco de dados não conectado.",
     });
   });
 
@@ -79,18 +71,18 @@ describe("getBackendHealth", () => {
         .mockResolvedValue(new Response(JSON.stringify({ status: "ok" }), { status: 200 })),
     );
 
-    await expect(getBackendHealth()).resolves.toMatchObject({
+    await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      reason: "A API respondeu em um formato inesperado.",
+      message: "Banco de dados não conectado.",
     });
   });
 
   it("returns a disconnected result when API_URL is missing", async () => {
     delete process.env.API_URL;
 
-    await expect(getBackendHealth()).resolves.toMatchObject({
+    await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      reason: "A URL interna da API não foi configurada.",
+      message: "Banco de dados não conectado.",
     });
   });
 });
