@@ -12,4 +12,4 @@ Esta pasta manterá o histórico das descrições usadas nos pull requests relac
 
 ## Registros
 
-Nenhum pull request do frontend registrado até o momento.
+- [`001-frontend-base-health-ssr.md`](001-frontend-base-health-ssr.md) - Estrutura modular e health check SSR.
