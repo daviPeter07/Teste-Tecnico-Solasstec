@@ -37,6 +37,7 @@ api/generated/
 playwright-report/
 test-results/
 blob-report/
+.playwright-mcp/
 
 # Next.js
 web/.next/
