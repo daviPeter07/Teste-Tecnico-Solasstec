@@ -2,6 +2,10 @@
   "compilerOptions": {
     "module": "nodenext",
     "types": ["jest", "node"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@generated/*": ["./generated/*"]
+    },
     "moduleResolution": "nodenext",
     "resolvePackageJsonExports": true,
     "esModuleInterop": true,

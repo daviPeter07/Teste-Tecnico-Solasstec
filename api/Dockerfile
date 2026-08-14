@@ -1,11 +1,9 @@
-# syntax=docker/dockerfile:1
-
 FROM node:24-alpine AS base
 
 ENV PNPM_HOME=/pnpm
 ENV PATH=$PNPM_HOME:$PATH
 
-RUN corepack enable && corepack prepare pnpm@10.26.1 --activate
+RUN npm install --global pnpm@10.26.1
 
 WORKDIR /workspace
 
@@ -31,7 +29,6 @@ COPY api ./api
 
 ENV DATABASE_URL=postgresql://postgres:postgres@database:5432/solasstec_portaria?schema=public
 
-RUN pnpm --filter api prisma:generate
 RUN pnpm --filter api build
 
 FROM base AS runner

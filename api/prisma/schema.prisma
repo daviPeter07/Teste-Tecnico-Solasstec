@@ -1,13 +1,118 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
+  schemas  = ["desafio"]
+}
+
+model Access {
+  id            Int          @id(map: "acesso_pkey") @default(autoincrement()) @db.Integer
+  visitorId     Int          @map("visitante_id") @db.Integer
+  roomId        Int?         @map("sala_id") @db.Integer
+  appointmentId Int?         @map("agendamento_id") @db.Integer
+  enteredAt     DateTime?    @map("entrada_em") @db.Timestamp(6)
+  exitedAt      DateTime?    @map("saida_em") @db.Timestamp(6)
+  active        Boolean?     @default(true) @map("ativo")
+  createdAt     DateTime?    @default(now()) @map("criado_em") @db.Timestamp(6)
+  visitor       Visitor      @relation(fields: [visitorId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "acesso_visitante_id_fkey")
+  room          Room?        @relation(fields: [roomId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "acesso_sala_id_fkey")
+  appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "acesso_agendamento_id_fkey")
+
+  @@map("acesso")
+  @@schema("desafio")
+}
+
+model Appointment {
+  id          Int       @id(map: "agendamento_pkey") @default(autoincrement()) @db.Integer
+  visitorId   Int       @map("visitante_id") @db.Integer
+  roomId      Int?      @map("sala_id") @db.Integer
+  scheduledAt DateTime  @unique(map: "idx_agendamento_data") @map("data_agendada") @db.Timestamp(6)
+  /// 1=PENDENTE, 2=CONFIRMADO, 3=CANCELADO, 4=FINALIZADO
+  status      Int?      @default(1) @db.SmallInt
+  active      Boolean?  @default(true) @map("ativo")
+  createdAt   DateTime? @default(now()) @map("criado_em") @db.Timestamp(6)
+  visitor     Visitor   @relation(fields: [visitorId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "agendamento_visitante_id_fkey")
+  room        Room?     @relation(fields: [roomId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "agendamento_sala_id_fkey")
+  accesses    Access[]
+
+  @@map("agendamento")
+  @@schema("desafio")
+}
+
+model Holiday {
+  id          Int       @id(map: "feriado_pkey") @default(autoincrement()) @db.Integer
+  date        DateTime  @unique(map: "idx_feriado_data") @map("data") @db.Date
+  description String    @map("descricao") @db.Text
+  /// 1=NACIONAL, 2=ESTADUAL, 3=MUNICIPAL
+  type        Int?      @map("tipo") @db.SmallInt
+  active      Boolean?  @default(true) @map("ativo")
+  createdAt   DateTime? @default(now()) @map("criado_em") @db.Timestamp(6)
+
+  @@map("feriado")
+  @@schema("desafio")
+}
+
+model Room {
+  id                 Int               @id(map: "sala_pkey") @default(autoincrement()) @db.Integer
+  name               String            @map("nome") @db.VarChar(100)
+  /// dia_semana (Days of the Week), hora_abertura e hora_fechamento por dia_semana
+  availability       Json              @map("disponibilidade") @db.JsonB
+  capacity           Int               @map("capacidade") @db.Integer
+  /// 1=Hora, 2=Dia, 3=Semana, 4=Mês
+  capacityVariation  Int?              @default(2) @map("variacao_capacidade") @db.SmallInt
+  active             Boolean?          @default(true) @map("ativo")
+  createdAt          DateTime?         @default(now()) @map("criado_em") @db.Timestamp(6)
+  appointments       Appointment[]
+  accesses           Access[]
+  responsibleHistory RoomResponsible[]
+
+  @@map("sala")
+  @@schema("desafio")
+}
+
+model RoomResponsible {
+  id         Int       @id(map: "sala_responsavel_pkey") @default(autoincrement()) @db.Integer
+  roomId     Int?      @map("sala_id") @db.Integer
+  name       String    @map("nome") @db.Text
+  validFrom  DateTime  @map("valido_de") @db.Date
+  validUntil DateTime? @map("valido_ate") @db.Date
+  active     Boolean?  @default(true) @map("ativo")
+  createdAt  DateTime? @default(now()) @map("criado_em") @db.Timestamp(6)
+  room       Room?     @relation(fields: [roomId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "sala_responsavel_sala_id_fkey")
+
+  @@map("sala_responsavel")
+  @@schema("desafio")
+}
+
+model PriorityType {
+  id            Int       @id(map: "tipo_prioridade_pkey") @default(autoincrement()) @db.Integer
+  description   String    @map("descricao") @db.VarChar(100)
+  priorityLevel Int       @map("nivel_prioridade") @db.SmallInt
+  active        Boolean?  @default(true) @map("ativo")
+  createdAt     DateTime? @default(now()) @map("criado_em") @db.Timestamp(6)
+  visitors      Visitor[]
+
+  @@map("tipo_prioridade")
+  @@schema("desafio")
+}
+
+model Visitor {
+  id             Int           @id(map: "visitante_pkey") @default(autoincrement()) @db.Integer
+  name           String        @map("nome") @db.VarChar(100)
+  document       String        @unique(map: "idx_visitante_documento") @map("documento") @db.VarChar(50)
+  birthDate      DateTime      @map("data_nascimento") @db.Date
+  priorityTypeId Int?          @map("tipo_prioridade_id") @db.Integer
+  photo          String?       @map("foto") @db.VarChar(255)
+  active         Boolean?      @default(true) @map("ativo")
+  createdAt      DateTime?     @default(now()) @map("criado_em") @db.Timestamp(2)
+  priorityType   PriorityType? @relation(fields: [priorityTypeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "visitante_tipo_prioridade_id_fkey")
+  appointments   Appointment[]
+  accesses       Access[]
+
+  @@map("visitante")
+  @@schema("desafio")
 }
