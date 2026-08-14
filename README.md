@@ -10,6 +10,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![GitHub](https://img.shields.io/badge/GitHub-Repositório-181717?logo=github&logoColor=white)](https://github.com/daviPeter07/Teste-Tecnico-Solasstec)
 
 </div>
 
@@ -18,6 +19,8 @@
 O **Solasstec Portaria** é um sistema web administrativo para cadastrar visitantes, salas e feriados, além de organizar o uso de ambientes corporativos por meio de agendamentos.
 
 O projeto foi criado para a Fase 2 do desafio técnico da Solasstec. A especificação original está disponível em [`docs/Desafio Solasstec_.pdf`](docs/Desafio%20Solasstec_.pdf).
+
+Repositório oficial: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 
 > [!IMPORTANT]
 > O repositório ainda está em desenvolvimento. A infraestrutura do monorepo está preparada, mas os módulos de domínio e as rotas descritas como **planejadas** ainda serão implementados. Atualmente a API expõe apenas `GET /` e o frontend contém a página inicial do Next.js.
@@ -266,8 +269,8 @@ Uma tentativa inválida de agendamento deverá responder com `422 Unprocessable 
 ### Instalação local
 
 ```bash
-git clone <url-do-repositorio>
-cd solasstec-portaria
+git clone https://github.com/daviPeter07/Teste-Tecnico-Solasstec.git
+cd Teste-Tecnico-Solasstec
 corepack enable
 pnpm install
 ```

@@ -21,5 +21,13 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/daviPeter07/Teste-Tecnico-Solasstec.git"
+  },
+  "bugs": {
+    "url": "https://github.com/daviPeter07/Teste-Tecnico-Solasstec/issues"
+  },
+  "homepage": "https://github.com/daviPeter07/Teste-Tecnico-Solasstec#readme",
   "packageManager": "pnpm@10.26.1"
 }
