@@ -14,7 +14,7 @@ export function RefreshStatusButton() {
       size="lg"
       onClick={refresh}
       disabled={isRefreshing}
-      className="h-11 border-slate-300 bg-white/70 px-4 text-slate-800 shadow-sm backdrop-blur hover:bg-white"
+      className="h-11 rounded-none border-orange-200 bg-white px-4 text-orange-800 shadow-none hover:bg-orange-50 dark:border-orange-800 dark:bg-zinc-950 dark:text-orange-200 dark:hover:bg-orange-950"
     >
       <RefreshCw
         aria-hidden="true"

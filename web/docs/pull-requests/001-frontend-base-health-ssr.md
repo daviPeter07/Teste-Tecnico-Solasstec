@@ -13,6 +13,8 @@ O frontend ainda utilizava a página inicial padrão do Next.js e não validava 
 - Padroniza o frontend na porta `3001` e o backend na porta `3333`.
 - Corrige a imagem standalone do Next.js para incluir os helpers SWC exigidos em runtime.
 - Exibe somente a mensagem que confirma se o banco de dados está conectado.
+- Adota paleta branca e laranja com tema escuro opcional e tema claro como padrão.
+- Adiciona toggle acessível com persistência da preferência de tema.
 - Permite solicitar uma nova leitura por `router.refresh()` sem mover o acesso à API para o navegador.
 - Adiciona testes unitários para sucesso, falha de rede e configuração ausente.
 - Atualiza a documentação de arquitetura, ambiente e scripts do frontend.
