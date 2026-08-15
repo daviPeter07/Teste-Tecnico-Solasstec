@@ -15,6 +15,7 @@ O frontend ainda utilizava a página inicial padrão do Next.js e não validava 
 - Exibe somente a mensagem que confirma se o banco de dados está conectado.
 - Adota paleta branca e laranja com tema escuro opcional e tema claro como padrão.
 - Adiciona toggle acessível com persistência da preferência de tema.
+- Configura o TanStack Query globalmente com cache estável no navegador e defaults de atualização.
 - Permite solicitar uma nova leitura por `router.refresh()` sem mover o acesso à API para o navegador.
 - Adiciona testes unitários para sucesso, falha de rede e configuração ausente.
 - Atualiza a documentação de arquitetura, ambiente e scripts do frontend.
