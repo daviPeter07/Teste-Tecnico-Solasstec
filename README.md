@@ -155,34 +155,27 @@ Imports entre camadas usam os aliases `@/` para `api/src` e `@generated/` para o
 
 ### Frontend
 
-O frontend usará o App Router. As páginas serão separadas por domínio, enquanto componentes, schemas e clientes HTTP permanecerão reutilizáveis.
+O frontend usa o App Router com módulos verticais por rota. Cada módulo mantém sua página, componentes, hooks e services próximos; apenas elementos realmente compartilhados ficam nas pastas globais.
 
 ```text
 web/
 |-- public/
 |-- src/
 |   |-- app/
-|   |   |-- agendamentos/page.tsx
-|   |   |-- visitantes/page.tsx
-|   |   |-- salas/page.tsx
-|   |   |-- feriados/page.tsx
+|   |   |-- (home)/
+|   |   |   |-- _components/
+|   |   |   |-- _hooks/
+|   |   |   |-- _services/
+|   |   |   `-- page.tsx
+|   |   |-- agendamentos/
+|   |   |-- visitantes/
+|   |   |-- salas/
+|   |   |-- feriados/
 |   |   |-- layout.tsx
-|   |   `-- page.tsx
 |   |-- components/
-|   |   |-- appointments/
-|   |   |-- visitors/
-|   |   |-- rooms/
-|   |   |-- holidays/
-|   |   |-- layout/
 |   |   `-- ui/
-|   |-- hooks/
 |   |-- lib/
-|   |   |-- api/
-|   |   |-- query-client.ts
 |   |   `-- utils.ts
-|   |-- providers/
-|   |-- schemas/
-|   `-- types/
 |-- Dockerfile
 |-- .dockerignore
 |-- .env.example
@@ -197,7 +190,7 @@ A API usa o prefixo `/api/v1` e disponibiliza sua documentação Swagger em `/do
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `GET` | `/api/v1/health` | Verifica a disponibilidade da API e do banco |
+| `GET` | `/api/v1/health` | Verifica a conexão e retorna uma mensagem sobre o banco |
 
 ### Visitantes
 
@@ -320,10 +313,10 @@ pnpm dev
 
 | Serviço | Endereço |
 | --- | --- |
-| Frontend | <http://localhost:3000> |
-| Health check | <http://localhost:3001/api/v1/health> |
-| API | <http://localhost:3001/api/v1> |
-| Swagger | <http://localhost:3001/docs> |
+| Frontend | <http://localhost:3001> |
+| Health check | <http://localhost:3333/api/v1/health> |
+| API | <http://localhost:3333/api/v1> |
+| Swagger | <http://localhost:3333/docs> |
 | Prisma Studio | <http://localhost:5555> após executar `pnpm db:studio` |
 
 ## Docker
@@ -359,7 +352,7 @@ O contexto de build deve ser a raiz para que o Docker tenha acesso ao lockfile d
 
 ```bash
 docker build -f api/Dockerfile -t solasstec-portaria-api .
-docker run --rm -p 3001:3001 \
+docker run --rm -p 3333:3333 \
   -e DATABASE_URL="postgresql://postgres:postgres@host.docker.internal:5432/solasstec_portaria?schema=public" \
   -e CORS_ORIGIN \
   solasstec-portaria-api
@@ -367,14 +360,14 @@ docker run --rm -p 3001:3001 \
 
 ### Imagem do frontend
 
-Variáveis `NEXT_PUBLIC_*` são incorporadas ao bundle durante o build. Informe a URL pública que será acessível pelo navegador:
+A URL da API é informada em runtime e consultada apenas pelo servidor Next.js. Ao executar as imagens separadamente, use um endereço que seja alcançável de dentro do container:
 
 ```bash
-docker build -f web/Dockerfile \
-  --build-arg NEXT_PUBLIC_API_URL="http://localhost:3001/api/v1" \
-  -t solasstec-portaria-web .
+docker build -f web/Dockerfile -t solasstec-portaria-web .
 
-docker run --rm -p 3000:3000 solasstec-portaria-web
+docker run --rm -p 3001:3001 \
+  -e API_URL="http://host.docker.internal:3333/api/v1" \
+  solasstec-portaria-web
 ```
 
 ## Variáveis de ambiente
@@ -386,7 +379,7 @@ Use [`api/.env.example`](api/.env.example) como modelo.
 | Variável | Obrigatória | Padrão | Descrição |
 | --- | --- | --- | --- |
 | `NODE_ENV` | Não | `development` | Ambiente da aplicação |
-| `PORT` | Não | `3001` | Porta HTTP da API |
+| `PORT` | Não | `3333` | Porta HTTP da API |
 | `API_PREFIX` | Não | `api/v1` | Prefixo global das rotas |
 | `CORS_ORIGIN` | Não | nenhuma | Origens permitidas, separadas por vírgula |
 | `DATABASE_URL` | Sim | - | Connection string PostgreSQL usada pelo Prisma |
@@ -399,10 +392,10 @@ Use [`web/.env.example`](web/.env.example) como modelo.
 
 | Variável | Obrigatória | Padrão | Descrição |
 | --- | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | Sim | `http://localhost:3001/api/v1` | URL pública da API usada pelo navegador |
+| `API_URL` | Sim | `http://localhost:3333/api/v1` | URL interna da API usada pelos Server Components |
 
 > [!NOTE]
-> Variáveis `NEXT_PUBLIC_*` são incorporadas ao JavaScript do navegador e nunca devem conter segredos.
+> `API_URL` não usa o prefixo `NEXT_PUBLIC_` e permanece disponível apenas no servidor Next.js. No Docker Compose, ela aponta para a API pela rede interna.
 
 ## Scripts
 
@@ -444,6 +437,7 @@ Use [`web/.env.example`](web/.env.example) como modelo.
 | `pnpm --filter web build` | Gera o build de produção |
 | `pnpm --filter web start` | Inicia o build de produção |
 | `pnpm --filter web lint` | Executa o ESLint |
+| `pnpm --filter web test` | Executa os testes unitários com Vitest |
 
 ## Testes e qualidade
 
@@ -472,12 +466,13 @@ pnpm build
 - [x] Configuração global da API, validação de ambiente e Swagger.
 - [x] Modelagem Prisma, migration inicial e seed.
 - [x] Módulo Prisma por injeção de dependência e health check.
+- [x] Estrutura modular do frontend e health check SSR.
 - [ ] Módulo de visitantes e cálculo de prioridade.
 - [ ] Módulo de salas e históricos.
 - [ ] Módulo de feriados.
 - [ ] Módulo de agendamentos e disponibilidade.
 - [ ] Páginas administrativas do frontend.
-- [ ] Integração frontend/API.
+- [x] Integração inicial frontend/API.
 - [ ] Cobertura de testes unitários, integração e e2e.
 
 ---

@@ -34,7 +34,7 @@ RUN pnpm --filter api build
 FROM base AS runner
 
 ENV NODE_ENV=production
-ENV PORT=3001
+ENV PORT=3333
 
 COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY --from=production-dependencies --chown=node:node /workspace/node_modules ./node_modules
@@ -46,6 +46,6 @@ COPY --chown=node:node api/prisma ./api/prisma
 
 USER node
 
-EXPOSE 3001
+EXPOSE 3333
 
 CMD ["sh", "-c", "pnpm --filter api prisma:migrate:deploy && node api/dist/src/main.js"]

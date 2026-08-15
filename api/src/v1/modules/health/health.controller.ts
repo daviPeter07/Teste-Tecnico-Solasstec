@@ -10,7 +10,7 @@ export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Check API and database availability' })
+  @ApiOperation({ summary: 'Check database connection' })
   @ApiOkResponse({ type: HealthResponseDto })
   @ApiErrorResponses(HttpStatus.SERVICE_UNAVAILABLE)
   check(): Promise<HealthResponseDto> {
