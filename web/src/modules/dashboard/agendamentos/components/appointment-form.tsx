@@ -45,7 +45,7 @@ export interface AppointmentFormModalProps {
 }
 
 interface SuggestionDetails {
-  suggestion?: { startsAt: string; endsAt: string } | null;
+  suggestion?: { startsAt: string } | null;
 }
 
 function isSuggestionDetails(value: unknown): value is SuggestionDetails {
@@ -179,7 +179,7 @@ export function AppointmentFormModal({
                 <span className="block">{submitError}</span>
                 {suggestion && (
                   <span className="block text-sm">
-                    Próxima sugestão: {formatDateTimeInManaus(suggestion.startsAt)} até {formatDateTimeInManaus(suggestion.endsAt)}.
+                    Próxima sugestão: {formatDateTimeInManaus(suggestion.startsAt)}.
                   </span>
                 )}
               </AlertDescription>
@@ -330,7 +330,7 @@ export function AppointmentFormModal({
                             const isSelected = selectedStartsAt === slot.startsAt;
                             return (
                               <Button
-                                key={`${slot.startsAt}-${slot.endsAt}`}
+                                key={slot.startsAt}
                                 type="button"
                                 variant={isSelected ? "default" : "outline"}
                                 className={cn(

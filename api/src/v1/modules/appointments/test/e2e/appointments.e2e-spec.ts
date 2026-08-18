@@ -192,6 +192,7 @@ describe('Appointments (e2e)', () => {
       occupancy: 0,
       capacity: 1,
     });
+    expect(body.slots.map((slot) => slot.startsAt)).not.toContain('08:30');
   });
 
   it('GET /api/v1/appointments/availability suggests the next date for a holiday', async () => {

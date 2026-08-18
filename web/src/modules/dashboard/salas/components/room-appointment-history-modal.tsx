@@ -92,9 +92,7 @@ export function RoomAppointmentHistoryModal({
                   </div>
                   <div className="text-left sm:text-right">
                     <p className="text-sm font-medium">{formatDateOnly(appointment.date)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {appointment.startsAt} - {appointment.endsAt}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{appointment.startsAt}</p>
                   </div>
                 </article>
                 );

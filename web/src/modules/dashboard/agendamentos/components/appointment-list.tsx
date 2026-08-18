@@ -98,7 +98,7 @@ export function AppointmentList({
                     </TableCell>
                     <TableCell>{appointment.room.name}</TableCell>
                     <TableCell>{formatDateOnly(appointment.date)}</TableCell>
-                    <TableCell>{appointment.startsAt} - {appointment.endsAt}</TableCell>
+                    <TableCell>{appointment.startsAt}</TableCell>
                     <TableCell>
                       <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
                     </TableCell>
@@ -145,7 +145,7 @@ export function AppointmentList({
                 </div>
                 <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
                   <CalendarClock aria-hidden="true" className="size-4 text-primary" />
-                  {formatDateOnly(appointment.date)} · {appointment.startsAt} - {appointment.endsAt}
+                  {formatDateOnly(appointment.date)} · {appointment.startsAt}
                 </p>
                 <div className="mt-5 flex items-center justify-end gap-1 border-t border-border pt-3">
                   <Button type="button" variant="ghost" size="sm" className="rounded-none" onClick={() => onEditAppointment?.(appointment)}>

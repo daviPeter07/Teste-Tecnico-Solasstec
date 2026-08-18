@@ -17,7 +17,7 @@ Este PR implementa o gerenciamento de agendamentos previsto na especificação d
 - Sugestão automática do próximo horário disponível em erros de disponibilidade.
 - Card de sugestão ao selecionar uma data de feriado, permitindo aplicar a próxima data disponível.
 - Tela `/agendamentos` substituindo o placeholder por CRUD integrado.
-- Seleção de horário por slots disponíveis/ocupados, sem exigir preenchimento manual de horário final.
+- Seleção de horário por slots disponíveis/ocupados, exibindo apenas o horário de início ao usuário.
 - Botão `Histórico` nas ações de salas exibindo os agendamentos já registrados para aquela sala.
 - Estado vazio do histórico de sala com ação para criar agendamento já deixando a sala selecionada.
 - Combobox de visitante e sala usando `Command` + `Popover` no padrão shadcn/ui.
@@ -48,8 +48,7 @@ Este PR implementa o gerenciamento de agendamentos previsto na especificação d
 ### Regras implementadas
 
 - Visitante e sala precisam existir e estar ativos.
-- `startsAt` deve ser anterior a `endsAt`.
-- Quando o cliente envia apenas `startsAt`, a API infere uma duração técnica padrão de 1 hora para validações de conflito/capacidade.
+- A API considera duração padrão de 1 hora a partir do horário escolhido para validar conflito e capacidade.
 - A data não pode ser feriado ativo.
 - A sala precisa funcionar no dia e horário solicitado.
 - O visitante não pode ter outro agendamento ativo e pendente/confirmado no mesmo período.
@@ -69,7 +68,7 @@ A rota `/agendamentos` agora possui:
 - cancelamento com confirmação;
 - exibição da sugestão automática retornada pela API;
 - combobox pesquisável para visitante e sala.
-- seleção visual de horário de atendimento em slots, com horários indisponíveis em cinza.
+- seleção visual de horário de atendimento em slots de 1 hora, com horários indisponíveis em cinza.
 - card de sugestão de próxima data disponível quando a data selecionada for feriado.
 
 ### Visão geral e salas
