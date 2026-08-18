@@ -1,9 +1,7 @@
-import "server-only";
-
 import { z } from "zod";
 
 const healthResponseSchema = z.object({
-  message: z.literal("Banco de dados conectado."),
+  message: z.literal("Sistema operando normalmente."),
 });
 
 export interface BackendHealthResult {
@@ -17,41 +15,40 @@ export async function getBackendHealth(): Promise<BackendHealthResult> {
   if (!apiUrl) {
     return {
       connected: false,
-      message: "Banco de dados não conectado.",
+      message: "Sistema indisponível temporariamente.",
     };
   }
 
   try {
     const response = await fetch(`${apiUrl}/health`, {
       cache: "no-store",
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(3_500),
     });
 
     if (!response.ok) {
       return {
         connected: false,
-        message: "Banco de dados não conectado.",
+        message: "Sistema indisponível temporariamente.",
       };
     }
 
-    const parsedHealth = healthResponseSchema.safeParse(await response.json());
+    const payload = await response.json();
+    const parsed = healthResponseSchema.safeParse(payload);
 
-    if (!parsedHealth.success) {
+    if (!parsed.success) {
       return {
         connected: false,
-        message: "Banco de dados não conectado.",
+        message: "Sistema indisponível temporariamente.",
       };
     }
 
     return {
       connected: true,
-      message: parsedHealth.data.message,
+      message: parsed.data.message,
     };
   } catch {
     return {
       connected: false,
-      message: "Banco de dados não conectado.",
+      message: "Sistema indisponível temporariamente.",
     };
   }
 }

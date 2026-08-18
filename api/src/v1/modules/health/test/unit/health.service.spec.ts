@@ -1,5 +1,5 @@
-import { ServiceUnavailableException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { SystemUnavailableException } from '@/common/exceptions';
 import { HealthService } from '../../health.service';
 import { HealthRepository } from '../../repositories/health.repository';
 
@@ -25,21 +25,21 @@ describe('HealthService', () => {
     service = module.get(HealthService);
   });
 
-  it('returns a message when the database is connected', async () => {
+  it('returns a message when system is healthy', async () => {
     healthRepository.pingDatabase.mockResolvedValue();
 
     await expect(service.check()).resolves.toEqual({
-      message: 'Banco de dados conectado.',
+      message: 'Sistema operando normalmente.',
     });
   });
 
-  it('throws a service unavailable error when the database is down', async () => {
+  it('throws a service unavailable error when database is down', async () => {
     healthRepository.pingDatabase.mockRejectedValue(
       new Error('connection refused'),
     );
 
     await expect(service.check()).rejects.toBeInstanceOf(
-      ServiceUnavailableException,
+      SystemUnavailableException,
     );
   });
 });

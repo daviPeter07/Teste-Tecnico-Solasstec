@@ -41,7 +41,7 @@ describe('Health (e2e)', () => {
       .expect(200);
 
     expect(response.body).toEqual({
-      message: 'Banco de dados conectado.',
+      message: 'Sistema operando normalmente.',
     });
   });
 
@@ -54,8 +54,8 @@ describe('Health (e2e)', () => {
 
     expect(response.body).toMatchObject({
       statusCode: 503,
-      code: 'DATABASE_UNAVAILABLE',
-      message: 'Banco de dados não conectado.',
+      code: 'SYSTEM_UNAVAILABLE',
+      message: 'Sistema indisponível temporariamente.',
       path: '/api/v1/health',
     });
   });

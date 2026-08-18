@@ -6,6 +6,8 @@ import { RequestLoggingInterceptor } from '@/common/interceptors/request-logging
 import { configuration } from '@/config/configuration';
 import { envValidationSchema } from '@/config/env.validation';
 import { HealthModule } from '@/v1/modules/health/health.module';
+import { RoomsModule } from '@/v1/modules/rooms/rooms.module';
+import { VisitorsModule } from '@/v1/modules/visitors/visitors.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { HealthModule } from '@/v1/modules/health/health.module';
       validationOptions: { abortEarly: false },
     }),
     HealthModule,
+    RoomsModule,
+    VisitorsModule,
   ],
   providers: [
     {

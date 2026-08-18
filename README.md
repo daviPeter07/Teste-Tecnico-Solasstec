@@ -23,7 +23,7 @@ O projeto foi criado para a Fase 2 do desafio técnico da Solasstec. A especific
 Repositório oficial: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 
 > [!IMPORTANT]
-> O repositório ainda está em desenvolvimento. A base do backend, o schema inicial e o health check já estão implementados; os módulos de visitantes, salas, feriados e agendamentos permanecem planejados. O frontend ainda contém a página inicial do Next.js.
+> O repositório ainda está em desenvolvimento. A base full stack, o dashboard e os cadastros iniciais de visitantes e salas já estão implementados; edição, inativação, feriados e agendamentos permanecem planejados.
 
 ## Sumário
 
@@ -79,7 +79,7 @@ Repositório oficial: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 
 O repositório usa um monorepo pnpm com aplicações independentes e uma orquestração Docker na raiz.
 
-O schema Prisma mapeia o schema PostgreSQL `desafio` e foi modelado a partir do dump oficial disponível em [`api/src/database/dumps/20260806_desafio (1).sql`](api/src/database/dumps/20260806_desafio%20(1).sql). Nomes físicos, tipos, relações e índices do dump são preservados com `@map`, `@@map` e `@@schema`.
+O schema Prisma mapeia o schema PostgreSQL `desafio` e foi modelado a partir do dump oficial disponível em [`api/src/database/dumps/20260806_desafio (1).sql`](api/src/database/dumps/20260806_desafio%20(1).sql). A migration inicial preserva o dump; migrations incrementais adicionam os campos e as restrições necessários para cumprir as regras de negócio.
 
 ```text
 solasstec-portaria/
@@ -162,15 +162,18 @@ web/
 |-- public/
 |-- src/
 |   |-- app/
-|   |   |-- (home)/
+|   |   |-- (dashboard)/
 |   |   |   |-- _components/
-|   |   |   |-- _hooks/
 |   |   |   |-- _services/
+|   |   |   |-- agendamentos/
+|   |   |   |-- visitantes/
+|   |   |   |-- salas/
+|   |   |   |-- feriados/
+|   |   |   |-- layout.tsx
 |   |   |   `-- page.tsx
-|   |   |-- agendamentos/
-|   |   |-- visitantes/
-|   |   |-- salas/
-|   |   |-- feriados/
+|   |   |-- api/
+|   |   |   |-- visitors/route.ts
+|   |   |   `-- rooms/route.ts
 |   |   |-- layout.tsx
 |   |-- components/
 |   |   `-- ui/
@@ -184,7 +187,7 @@ web/
 
 ## Contrato da API
 
-A API usa o prefixo `/api/v1` e disponibiliza sua documentação Swagger em `/docs`. O health check está implementado; as demais rotas abaixo representam o contrato planejado para os próximos módulos.
+A API usa o prefixo `/api/v1` e disponibiliza sua documentação Swagger em `/docs`. Health check, cadastro e consulta de visitantes e salas estão implementados; as demais rotas representam o contrato planejado.
 
 ### Saúde
 
@@ -204,6 +207,8 @@ A API usa o prefixo `/api/v1` e disponibiliza sua documentação Swagger em `/do
 | `DELETE` | `/api/v1/visitors/:id` | Inativa um visitante sem apagar seu histórico |
 | `GET` | `/api/v1/visitors/:id/appointments` | Consulta o histórico de agendamentos do visitante |
 
+Nesta etapa, `GET /visitors`, `GET /visitors/:id`, `GET /visitors/document/:document` e `POST /visitors` estão disponíveis. A prioridade é calculada automaticamente por idade e deficiência.
+
 ### Salas
 
 | Método | Rota | Descrição |
@@ -215,6 +220,8 @@ A API usa o prefixo `/api/v1` e disponibiliza sua documentação Swagger em `/do
 | `DELETE` | `/api/v1/rooms/:id` | Inativa uma sala sem apagar seu histórico |
 | `GET` | `/api/v1/rooms/:id/history` | Consulta responsáveis e horários anteriores |
 | `GET` | `/api/v1/rooms/:id/appointments` | Consulta o histórico de agendamentos da sala |
+
+Nesta etapa, `GET /rooms`, `GET /rooms/:id`, `GET /rooms/:id/history` e `POST /rooms` estão disponíveis. A criação registra sala, responsável atual e histórico inicial de funcionamento em uma operação atômica.
 
 ### Feriados
 
@@ -381,6 +388,7 @@ Use [`api/.env.example`](api/.env.example) como modelo.
 | `NODE_ENV` | Não | `development` | Ambiente da aplicação |
 | `PORT` | Não | `3333` | Porta HTTP da API |
 | `API_PREFIX` | Não | `api/v1` | Prefixo global das rotas |
+| `BUSINESS_TIME_ZONE` | Não | `America/Sao_Paulo` | Fuso usado nas regras de data do negócio |
 | `CORS_ORIGIN` | Não | nenhuma | Origens permitidas, separadas por vírgula |
 | `DATABASE_URL` | Sim | - | Connection string PostgreSQL usada pelo Prisma |
 | `SWAGGER_ENABLED` | Não | `true` | Habilita a documentação OpenAPI |
@@ -441,10 +449,10 @@ Use [`web/.env.example`](web/.env.example) como modelo.
 
 ## Testes e qualidade
 
-A base atual inclui testes unitários do health service/controller e um teste HTTP e2e do endpoint. A cobertura planejada para os próximos módulos inclui:
+A base atual inclui testes unitários e HTTP e2e para health, visitantes e salas, além de testes de componentes, schemas e integração do BFF no frontend. A cobertura planejada para os próximos módulos inclui:
 
 - Testes unitários de controllers, services e regras de disponibilidade.
-- Testes e2e dos endpoints da API.
+- Testes e2e dos módulos de feriados e agendamentos.
 - Testes de componentes e formulários com Testing Library.
 - Validação de DTOs no backend e schemas Zod no frontend.
 - Cobertura das regras críticas de conflito, prioridade e sugestão de horários.
@@ -467,11 +475,11 @@ pnpm build
 - [x] Modelagem Prisma, migration inicial e seed.
 - [x] Módulo Prisma por injeção de dependência e health check.
 - [x] Estrutura modular do frontend e health check SSR.
-- [ ] Módulo de visitantes e cálculo de prioridade.
-- [ ] Módulo de salas e históricos.
+- [x] Dashboard responsivo com navegação por domínio.
+- [x] Cadastro e consulta inicial de visitantes com prioridade automática.
+- [x] Cadastro e consulta inicial de salas com histórico de funcionamento.
 - [ ] Módulo de feriados.
 - [ ] Módulo de agendamentos e disponibilidade.
-- [ ] Páginas administrativas do frontend.
 - [x] Integração inicial frontend/API.
 - [ ] Cobertura de testes unitários, integração e e2e.
 

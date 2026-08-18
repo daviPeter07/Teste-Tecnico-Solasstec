@@ -5,7 +5,7 @@ import { HealthService } from '../../health.service';
 describe('HealthController', () => {
   let controller: HealthController;
   const healthResponse = {
-    message: 'Banco de dados conectado.',
+    message: 'Sistema operando normalmente.',
   };
   const healthService = {
     check: jest.fn().mockResolvedValue(healthResponse),

@@ -1,15 +1,14 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-
-vi.mock("server-only", () => ({}));
-
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getBackendHealth } from "./get-backend-health";
 
 describe("getBackendHealth", () => {
   const originalApiUrl = process.env.API_URL;
 
-  afterEach(() => {
-    vi.unstubAllGlobals();
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
 
+  afterEach(() => {
     if (originalApiUrl === undefined) {
       delete process.env.API_URL;
     } else {
@@ -19,61 +18,73 @@ describe("getBackendHealth", () => {
 
   it("returns a connected result for a healthy backend", async () => {
     process.env.API_URL = "http://api.test/api/v1";
-    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          message: "Banco de dados conectado.",
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
-    );
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        message: "Sistema operando normalmente.",
+      }),
+    });
+
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(getBackendHealth()).resolves.toEqual({
       connected: true,
-      message: "Banco de dados conectado.",
+      message: "Sistema operando normalmente.",
     });
+
     expect(fetchMock).toHaveBeenCalledWith(
       "http://api.test/api/v1/health",
-      expect.objectContaining({ cache: "no-store" }),
+      { cache: "no-store" },
     );
   });
 
-  it("returns a disconnected result without exposing network errors", async () => {
+  it("returns a disconnected result for HTTP error responses", async () => {
     process.env.API_URL = "http://api.test/api/v1";
-    vi.stubGlobal("fetch", vi.fn<typeof fetch>().mockRejectedValue(new Error("ECONNREFUSED")));
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+      }),
+    );
 
     await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      message: "Banco de dados não conectado.",
+      message: "Sistema indisponível temporariamente.",
     });
   });
 
-  it("returns a disconnected result for an unhealthy HTTP response", async () => {
+  it("returns a disconnected result when payload schema fails", async () => {
     process.env.API_URL = "http://api.test/api/v1";
+
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 503 })),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          status: "error",
+        }),
+      }),
     );
 
     await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      message: "Banco de dados não conectado.",
+      message: "Sistema indisponível temporariamente.",
     });
   });
 
-  it("returns a disconnected result for an invalid health response", async () => {
+  it("returns a disconnected result when network fetch throws", async () => {
     process.env.API_URL = "http://api.test/api/v1";
+
     vi.stubGlobal(
       "fetch",
-      vi
-        .fn<typeof fetch>()
-        .mockResolvedValue(new Response(JSON.stringify({ status: "ok" }), { status: 200 })),
+      vi.fn().mockRejectedValue(new Error("Network error")),
     );
 
     await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      message: "Banco de dados não conectado.",
+      message: "Sistema indisponível temporariamente.",
     });
   });
 
@@ -82,7 +93,7 @@ describe("getBackendHealth", () => {
 
     await expect(getBackendHealth()).resolves.toEqual({
       connected: false,
-      message: "Banco de dados não conectado.",
+      message: "Sistema indisponível temporariamente.",
     });
   });
 });
