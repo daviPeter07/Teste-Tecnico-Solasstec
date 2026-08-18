@@ -10,6 +10,9 @@ export function useRoomModal() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState<Room | null>(null);
 
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [roomToShowHistory, setRoomToShowHistory] = useState<Room | null>(null);
+
   function openCreate() {
     setSelectedRoom(null);
     setOpen(true);
@@ -25,6 +28,11 @@ export function useRoomModal() {
     setDeleteOpen(true);
   }
 
+  function openHistory(room: Room) {
+    setRoomToShowHistory(room);
+    setHistoryOpen(true);
+  }
+
   return {
     open,
     setOpen,
@@ -35,5 +43,9 @@ export function useRoomModal() {
     setDeleteOpen,
     roomToDelete,
     openDelete,
+    historyOpen,
+    setHistoryOpen,
+    roomToShowHistory,
+    openHistory,
   };
 }

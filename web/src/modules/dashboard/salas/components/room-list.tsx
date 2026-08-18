@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Clock3, DoorOpen, Pencil, Plus, Search, Trash2, Users } from "lucide-react";
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { CalendarClock, Clock3, DoorOpen, Pencil, Trash2, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -14,6 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DashboardEmptyState } from "@/modules/dashboard/shared/components/dashboard-empty-state";
+import { DashboardListToolbar } from "@/modules/dashboard/shared/components/dashboard-list-toolbar";
+import { PaginationFooter } from "@/modules/dashboard/shared/components/pagination-footer";
+import { useDashboardListState } from "@/modules/dashboard/shared/hooks/use-dashboard-list-state";
 import { formatRoomSchedule, normalize } from "@/utils/normalize";
 import { useRooms } from "../services/rooms-service";
 import type { Room } from "../schemas/room-schema";
@@ -22,88 +23,52 @@ export interface RoomListProps {
   onEditRoom?: (room: Room) => void;
   onCreateRoom?: () => void;
   onDeleteRoom?: (room: Room) => void;
+  onShowHistory?: (room: Room) => void;
 }
 
 export function RoomList({
   onEditRoom,
   onCreateRoom,
   onDeleteRoom,
+  onShowHistory,
 }: RoomListProps) {
-  const [searchParam, setSearchParam] = useQueryState(
-    "search",
-    parseAsString.withDefault("").withOptions({ shallow: true }),
-  );
-  const [pageParam, setPageParam] = useQueryState(
-    "page",
-    parseAsInteger.withDefault(1).withOptions({ shallow: true }),
-  );
-
-  const [inputState, setInputState] = useState({
-    value: searchParam,
-    source: searchParam,
-  });
-  const inputValue = inputState.source === searchParam ? inputState.value : searchParam;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (inputValue !== searchParam) {
-        setSearchParam(inputValue ? inputValue : null);
-        setPageParam(1);
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [inputValue, searchParam, setSearchParam, setPageParam]);
+  const { searchParam, pageParam, inputValue, onSearchChange, setPageParam } =
+    useDashboardListState();
 
   const rooms = useRooms(searchParam.trim(), pageParam);
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full max-w-md">
-          <Search
-            aria-hidden="true"
-            className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            value={inputValue}
-            onChange={(event) =>
-              setInputState({ value: event.target.value, source: searchParam })
-            }
-            placeholder="Buscar por sala ou responsável"
-            aria-label="Buscar salas"
-            className="h-11 rounded-none border-border bg-card pl-10"
-          />
-        </div>
-        {onCreateRoom && (
-          <Button
-            type="button"
-            onClick={onCreateRoom}
-            className="h-11 rounded-none px-5 shrink-0"
-          >
-            <Plus aria-hidden="true" className="mr-2 size-4" />
-            Nova sala
-          </Button>
-        )}
-      </div>
+      <DashboardListToolbar
+        inputValue={inputValue}
+        onSearchChange={onSearchChange}
+        placeholder="Buscar por sala ou responsável"
+        ariaLabel="Buscar salas"
+        createLabel="Nova sala"
+        onCreate={onCreateRoom}
+      />
 
       {rooms.isPending && <div className="h-72 animate-pulse border border-border bg-muted" />}
       {rooms.isError && (
-        <EmptyRooms
+        <DashboardEmptyState
+          icon={DoorOpen}
           title="Não foi possível carregar as salas"
           description={rooms.error.message}
-          onCreate={onCreateRoom}
+          actionLabel="Cadastrar sala"
+          onAction={onCreateRoom}
         />
       )}
       {rooms.data?.data.length === 0 && (
-        <EmptyRooms
+        <DashboardEmptyState
+          icon={DoorOpen}
           title={searchParam ? "Nenhuma sala encontrada" : "Nenhuma sala cadastrada"}
           description={
             searchParam
               ? "Tente buscar por outro nome ou responsável."
               : "Cadastre a primeira sala e seus horários de funcionamento."
           }
-          onCreate={onCreateRoom}
+          actionLabel="Cadastrar sala"
+          onAction={onCreateRoom}
         />
       )}
       {rooms.data && rooms.data.data.length > 0 && (
@@ -128,7 +93,12 @@ export function RoomList({
                     <TableRow key={room.id}>
                       <TableCell className="font-medium">{room.name}</TableCell>
                       <TableCell>{room.currentResponsible?.name ?? "Sem responsável"}</TableCell>
-                      <TableCell>{room.capacity} pessoas</TableCell>
+                      <TableCell>
+                        <Badge className="gap-1.5 border border-emerald-200 bg-emerald-100 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+                          <Users aria-hidden="true" className="size-3.5" />
+                          {room.capacity}
+                        </Badge>
+                      </TableCell>
                       <TableCell className="max-w-xs">
                         <div className="flex flex-col gap-1 text-xs">
                           {scheduleGroups.map((group, idx) => (
@@ -146,6 +116,16 @@ export function RoomList({
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-none"
+                            onClick={() => onShowHistory?.(room)}
+                          >
+                            <CalendarClock aria-hidden="true" className="size-4" />
+                            Histórico
+                          </Button>
                           <Button
                             type="button"
                             variant="ghost"
@@ -214,6 +194,16 @@ export function RoomList({
                       variant="ghost"
                       size="sm"
                       className="rounded-none"
+                      onClick={() => onShowHistory?.(room)}
+                    >
+                      <CalendarClock aria-hidden="true" className="size-4" />
+                      Histórico
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-none"
                       onClick={() => onEditRoom?.(room)}
                     >
                       <Pencil aria-hidden="true" className="size-4" />
@@ -234,57 +224,14 @@ export function RoomList({
               );
             })}
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-mono text-xs text-muted-foreground">
-              {rooms.data.meta.total} sala(s) ativa(s) · página {rooms.data.meta.page} de{" "}
-              {Math.max(rooms.data.meta.totalPages, 1)}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-none"
-                disabled={pageParam <= 1 || rooms.isFetching}
-                onClick={() => setPageParam((current) => Math.max(current - 1, 1))}
-              >
-                Anterior
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-none"
-                disabled={pageParam >= rooms.data.meta.totalPages || rooms.isFetching}
-                onClick={() => setPageParam((current) => current + 1)}
-              >
-                Próxima
-              </Button>
-            </div>
-          </div>
+          <PaginationFooter
+            meta={rooms.data.meta}
+            summaryLabel="sala(s) ativa(s)"
+            isFetching={rooms.isFetching}
+            onPageChange={(page) => setPageParam(page)}
+          />
         </>
       )}
     </section>
-  );
-}
-
-function EmptyRooms({
-  title,
-  description,
-  onCreate,
-}: {
-  title: string;
-  description: string;
-  onCreate?: () => void;
-}) {
-  return (
-    <div className="flex min-h-72 flex-col items-center justify-center border border-dashed border-border bg-card p-8 text-center">
-      <DoorOpen aria-hidden="true" className="size-8 text-primary" />
-      <h2 className="mt-4 text-lg font-semibold">{title}</h2>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
-      {onCreate && (
-        <Button type="button" onClick={onCreate} className="mt-6 rounded-none">
-          Cadastrar sala
-        </Button>
-      )}
-    </div>
   );
 }
