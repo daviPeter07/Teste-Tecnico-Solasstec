@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { FormDialogLayout } from "@/modules/dashboard/shared/components/form-dialog-layout";
 import { normalize } from "@/utils/normalize";
-import { useCreateVisitor, useUpdateVisitor } from "../hooks/use-visitors";
+import { useCreateVisitor, useUpdateVisitor } from "../services/visitors-service";
 import {
   visitorFormSchema,
   type Visitor,

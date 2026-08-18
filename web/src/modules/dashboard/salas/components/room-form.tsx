@@ -17,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { FormDialogLayout } from "@/modules/dashboard/shared/components/form-dialog-layout";
 import { cn } from "@/lib/utils";
-import { useCreateRoom, useUpdateRoom } from "../hooks/use-rooms";
+import { useCreateRoom, useUpdateRoom } from "../services/rooms-service";
 import {
   roomFormSchema,
   type Room,

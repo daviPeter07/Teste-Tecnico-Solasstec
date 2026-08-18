@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { normalize } from "@/utils/normalize";
-import { useVisitors } from "../hooks/use-visitors";
+import { useVisitors } from "../services/visitors-service";
 import type { Visitor } from "../schemas/visitor-schema";
 
 export interface VisitorListProps {
@@ -38,13 +38,11 @@ export function VisitorList({
     parseAsInteger.withDefault(1).withOptions({ shallow: true }),
   );
 
-  const [inputValue, setInputValue] = useState(searchParam);
-  const [prevSearchParam, setPrevSearchParam] = useState(searchParam);
-
-  if (prevSearchParam !== searchParam) {
-    setPrevSearchParam(searchParam);
-    setInputValue(searchParam);
-  }
+  const [inputState, setInputState] = useState({
+    value: searchParam,
+    source: searchParam,
+  });
+  const inputValue = inputState.source === searchParam ? inputState.value : searchParam;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -69,7 +67,9 @@ export function VisitorList({
           />
           <Input
             value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
+            onChange={(event) =>
+              setInputState({ value: event.target.value, source: searchParam })
+            }
             placeholder="Buscar por nome ou CPF"
             aria-label="Buscar visitantes"
             className="h-11 rounded-none border-border bg-card pl-10"

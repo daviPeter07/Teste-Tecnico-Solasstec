@@ -15,7 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatRoomSchedule, normalize } from "@/utils/normalize";
-import { useRooms } from "../hooks/use-rooms";
+import { useRooms } from "../services/rooms-service";
 import type { Room } from "../schemas/room-schema";
 
 export interface RoomListProps {
@@ -38,13 +38,11 @@ export function RoomList({
     parseAsInteger.withDefault(1).withOptions({ shallow: true }),
   );
 
-  const [inputValue, setInputValue] = useState(searchParam);
-  const [prevSearchParam, setPrevSearchParam] = useState(searchParam);
-
-  if (prevSearchParam !== searchParam) {
-    setPrevSearchParam(searchParam);
-    setInputValue(searchParam);
-  }
+  const [inputState, setInputState] = useState({
+    value: searchParam,
+    source: searchParam,
+  });
+  const inputValue = inputState.source === searchParam ? inputState.value : searchParam;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -69,7 +67,9 @@ export function RoomList({
           />
           <Input
             value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
+            onChange={(event) =>
+              setInputState({ value: event.target.value, source: searchParam })
+            }
             placeholder="Buscar por sala ou responsável"
             aria-label="Buscar salas"
             className="h-11 rounded-none border-border bg-card pl-10"
