@@ -1,6 +1,6 @@
-# Resumos de Pull Requests da API
+# Resumos de Pull Requests
 
-Esta pasta mantém o histórico das descrições usadas nos pull requests relacionados ao backend.
+Esta pasta mantém o histórico das descrições usadas nos pull requests do projeto.
 
 ## Convenção
 
@@ -13,3 +13,5 @@ Esta pasta mantém o histórico das descrições usadas nos pull requests relaci
 ## Registros
 
 - [`001-backend-base.md`](001-backend-base.md) - Estrutura base da API, Prisma e módulo health.
+- [`002-frontend-base-health-ssr.md`](002-frontend-base-health-ssr.md) - Estrutura modular e health check SSR.
+- [`003-dashboard-holidays.md`](003-dashboard-holidays.md) - CRUD de feriados, organização dos módulos e documentação atualizada.
