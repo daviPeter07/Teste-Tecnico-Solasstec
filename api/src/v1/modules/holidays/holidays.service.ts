@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import {
   HolidayDateConflictException,
   HolidayNotFoundException,
@@ -75,6 +76,10 @@ export class HolidaysService {
     const existing = await this.holidaysRepository.findById(id);
     if (!existing) this.throwNotFound();
     await this.holidaysRepository.deactivate(id);
+  }
+
+  async deleteInactive(input?: DeleteInactiveRecordsDto): Promise<void> {
+    await this.holidaysRepository.deleteInactive(input?.ids);
   }
 
   private async ensureDateIsAvailable(

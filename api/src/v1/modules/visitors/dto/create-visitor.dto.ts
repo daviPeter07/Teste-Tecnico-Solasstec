@@ -11,7 +11,7 @@ import {
   MinLength,
 } from 'class-validator';
 
-export const DOCUMENT_TYPES = ['CPF'] as const;
+export const DOCUMENT_TYPES = ['CPF', 'RG'] as const;
 export type DocumentType = (typeof DOCUMENT_TYPES)[number];
 
 export class CreateVisitorDto {
@@ -28,10 +28,10 @@ export class CreateVisitorDto {
   @IsIn(DOCUMENT_TYPES)
   documentType!: DocumentType;
 
-  @ApiProperty({ example: '123.456.789-09', maxLength: 14 })
+  @ApiProperty({ example: '123.456.789-09', maxLength: 20 })
   @IsString()
-  @MinLength(11)
-  @MaxLength(14)
+  @MinLength(7)
+  @MaxLength(20)
   document!: string;
 
   @ApiProperty({ example: '1960-05-20', format: 'date' })

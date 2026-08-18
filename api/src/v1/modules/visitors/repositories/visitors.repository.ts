@@ -56,4 +56,5 @@ export abstract class VisitorsRepository {
     input: CreateVisitorInput,
   ): Promise<VisitorRecord>;
   abstract deactivate(id: number): Promise<void>;
+  abstract deleteInactive(ids?: number[]): Promise<number>;
 }

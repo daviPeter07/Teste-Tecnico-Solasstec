@@ -10,11 +10,11 @@ export class PaginationQueryDto {
   @IsOptional()
   page = 1;
 
-  @ApiPropertyOptional({ default: 20, minimum: 1, maximum: 100 })
+  @ApiPropertyOptional({ default: 15, minimum: 1, maximum: 100 })
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(100)
   @IsOptional()
-  limit = 20;
+  limit = 15;
 }

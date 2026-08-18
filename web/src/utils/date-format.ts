@@ -36,6 +36,11 @@ export function daysBetweenDateOnly(startDate: string, endDate: string) {
   return Math.max(0, Math.round((end - start) / 86400000));
 }
 
+export function addDaysDateOnly(date: string, days: number) {
+  const timestamp = new Date(`${date.slice(0, 10)}T00:00:00.000Z`).getTime();
+  return new Date(timestamp + days * 86400000).toISOString().slice(0, 10);
+}
+
 export function isValidDateOnly(value: string) {
   const date = new Date(`${value}T00:00:00.000Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;

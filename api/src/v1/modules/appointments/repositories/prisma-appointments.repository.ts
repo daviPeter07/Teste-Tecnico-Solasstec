@@ -16,6 +16,14 @@ const appointmentInclude = {
 
 const blockingStatuses = [1, 2];
 
+function businessDateStart(date: string) {
+  return new Date(`${date}T00:00:00.000-04:00`);
+}
+
+function businessDateEnd(date: string) {
+  return new Date(`${date}T23:59:59.999-04:00`);
+}
+
 @Injectable()
 export class PrismaAppointmentsRepository implements AppointmentsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -49,6 +57,18 @@ export class PrismaAppointmentsRepository implements AppointmentsRepository {
       ...(input.visitorId ? { visitorId: input.visitorId } : {}),
       ...(input.roomId ? { roomId: input.roomId } : {}),
       ...(input.status ? { status: input.status } : {}),
+      ...(input.startsFrom || input.startsTo
+        ? {
+            startsAt: {
+              ...(input.startsFrom
+                ? { gte: businessDateStart(input.startsFrom) }
+                : {}),
+              ...(input.startsTo
+                ? { lte: businessDateEnd(input.startsTo) }
+                : {}),
+            },
+          }
+        : {}),
       ...(input.search
         ? {
             OR: [
@@ -188,5 +208,15 @@ export class PrismaAppointmentsRepository implements AppointmentsRepository {
       where: { id },
       data: { active: false, status: 3 },
     });
+  }
+
+  async deleteInactive(ids?: number[]): Promise<number> {
+    const result = await this.prisma.appointment.deleteMany({
+      where: {
+        active: false,
+        ...(ids?.length ? { id: { in: ids } } : {}),
+      },
+    });
+    return result.count;
   }
 }

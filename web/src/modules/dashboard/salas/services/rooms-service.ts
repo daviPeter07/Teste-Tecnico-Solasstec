@@ -9,14 +9,30 @@ import {
   type RoomFormData,
 } from "../schemas/room-schema";
 
-export function useRooms(search: string, page: number, limit = 20) {
+export function useRooms(search: string, page: number, limit = 15, active = true) {
   return useQuery({
-    queryKey: ["rooms", { search, page, limit }],
+    queryKey: ["rooms", { search, page, limit, active }],
     queryFn: async () => {
-      const params = buildListParams({ search, page, limit });
+      const params = buildListParams({ search, page, limit, active });
       const response = await fetch(getApiUrl(`/rooms?${params.toString()}`));
       return roomListSchema.parse(await readApiResponse(response));
     },
+  });
+}
+
+export function useDeleteInactiveRooms() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids?: number[]) => {
+      const response = await fetch(getApiUrl("/rooms/inactive"), {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: ids?.length ? JSON.stringify({ ids }) : undefined,
+      });
+      await readApiResponse(response);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["rooms"] }),
   });
 }
 

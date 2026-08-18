@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,15 +14,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { FormDialogLayout } from "@/modules/dashboard/shared/components/form-dialog-layout";
 import { getDateOnlyInTimeZone } from "@/utils/date-format";
 import { normalize } from "@/utils/normalize";
 import { useCreateVisitor, useUpdateVisitor } from "../services/visitors-service";
 import {
   visitorFormSchema,
+  type VisitorDocumentType,
   type Visitor,
   type VisitorFormData,
 } from "../schemas/visitor-schema";
+
+function formatDocumentInput(documentType: string, document: string) {
+  return documentType === "RG"
+    ? normalize.rg(document)
+    : normalize.cpf(document);
+}
+
+const documentTypeOptions: VisitorDocumentType[] = ["CPF", "RG"];
 
 export interface VisitorFormModalProps {
   open: boolean;
@@ -50,13 +60,23 @@ export function VisitorFormModal({
       photo: "",
     },
   });
+  const documentType = useWatch({
+    control: form.control,
+    name: "documentType",
+  });
+
   useEffect(() => {
     if (open) {
       if (visitorToEdit) {
+        const visitorDocumentType =
+          visitorToEdit.documentType === "RG" ? "RG" : "CPF";
         form.reset({
           name: visitorToEdit.name,
-          documentType: "CPF",
-          document: normalize.cpf(visitorToEdit.document),
+          documentType: visitorDocumentType,
+          document: formatDocumentInput(
+            visitorDocumentType,
+            visitorToEdit.document,
+          ),
           birthDate: visitorToEdit.birthDate,
           hasDisability: visitorToEdit.hasDisability,
           photo: visitorToEdit.photo ?? "",
@@ -132,21 +152,72 @@ export function VisitorFormModal({
 
             <FormField
               control={form.control}
-                name="document"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel required>CPF</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(normalize.cpf(e.target.value));
-                        }}
-                        placeholder="Ex: 123.456.789-00"
-                        maxLength={14}
-                        className="h-11 rounded-none"
-                      />
-                    </FormControl>
+              name="documentType"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required>Tipo</FormLabel>
+                  <FormControl>
+                    <div className="grid h-11 grid-cols-2 border border-input bg-background">
+                      {documentTypeOptions.map((option) => {
+                        const isSelected = field.value === option;
+
+                        return (
+                          <button
+                            key={option}
+                            type="button"
+                            aria-pressed={isSelected}
+                            className={cn(
+                              "border-r border-border text-sm font-semibold tracking-wide transition-colors last:border-r-0",
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                            )}
+                            onClick={() => {
+                              field.onChange(option);
+                              form.setValue(
+                                "document",
+                                formatDocumentInput(
+                                  option,
+                                  form.getValues("document"),
+                                ),
+                                { shouldValidate: true },
+                              );
+                            }}
+                          >
+                            {option}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="document"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel required>{documentType}</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(
+                          formatDocumentInput(documentType, e.target.value),
+                        );
+                      }}
+                      placeholder={
+                        documentType === "RG"
+                          ? "Ex: 12.345.678-X"
+                          : "Ex: 123.456.789-00"
+                      }
+                      maxLength={documentType === "RG" ? 17 : 14}
+                      className="h-11 rounded-none"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

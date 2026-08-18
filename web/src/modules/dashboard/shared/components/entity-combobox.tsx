@@ -83,7 +83,11 @@ export const EntityCombobox = forwardRef<HTMLButtonElement, EntityComboboxProps>
           >
             <Command>
               <CommandInput placeholder={searchPlaceholder} />
-              <CommandList>
+              <CommandList
+                className="overscroll-contain"
+                onWheel={(event) => event.stopPropagation()}
+                onTouchMove={(event) => event.stopPropagation()}
+              >
                 <CommandEmpty>{emptyMessage}</CommandEmpty>
                 <CommandGroup>
                   {options.map((option) => (

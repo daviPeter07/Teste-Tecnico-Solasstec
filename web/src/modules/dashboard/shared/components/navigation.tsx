@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ArchiveX,
   Building2,
   CalendarDays,
   DoorOpen,
@@ -26,12 +27,17 @@ import {
 import { cn } from "@/lib/utils";
 
 const navigationItems = [
-  { href: "/", label: "Visão geral", icon: LayoutDashboard },
-  { href: "/visitantes", label: "Visitantes", icon: Users },
-  { href: "/salas", label: "Salas", icon: DoorOpen },
-  { href: "/feriados", label: "Feriados", icon: CalendarDays },
-  { href: "/agendamentos", label: "Agendamentos", icon: Building2 },
+  { href: "/", label: "Visão geral", dockLabel: "Início", icon: LayoutDashboard },
+  { href: "/visitantes", label: "Visitantes", dockLabel: "Visitantes", icon: Users },
+  { href: "/salas", label: "Salas", dockLabel: "Salas", icon: DoorOpen },
+  { href: "/feriados", label: "Feriados", dockLabel: "Feriados", icon: CalendarDays },
+  { href: "/agendamentos", label: "Agendamentos", dockLabel: "Agenda", icon: Building2 },
+  { href: "/inativos", label: "Inativos", dockLabel: "Inativos", icon: ArchiveX },
 ] as const;
+
+function isActivePath(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+}
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -63,8 +69,7 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
-                const isActive =
-                  item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                const isActive = isActivePath(pathname, item.href);
                 const Icon = item.icon;
 
                 return (
@@ -100,7 +105,7 @@ export function AppHeader() {
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background px-4 sm:px-6">
       <div className="flex items-center gap-3">
-        <SidebarTrigger />
+        <SidebarTrigger className="hidden md:inline-flex" />
         <CurrentAreaName />
       </div>
       <ThemeToggle />
@@ -108,11 +113,50 @@ export function AppHeader() {
   );
 }
 
+export function MobileDockNavigation() {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      aria-label="Navegação principal"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-card/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-12px_30px_rgba(15,23,42,0.1)] backdrop-blur-xl md:hidden"
+    >
+      <div className="grid w-full grid-cols-6">
+        {navigationItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = isActivePath(pathname, item.href);
+
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive ? "page" : undefined}
+              className={cn(
+                "group flex h-12 flex-col items-center justify-center gap-0.5 px-1 text-[0.61rem] font-bold tracking-tight transition-colors",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+              )}
+            >
+              <Icon
+                aria-hidden="true"
+                className={cn(
+                  "size-4 transition-transform group-hover:-translate-y-0.5",
+                  isActive && "size-4.5",
+                )}
+              />
+              <span className="max-w-full truncate leading-none">{item.dockLabel}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 export function CurrentAreaName({ compact = false }: { compact?: boolean }) {
   const pathname = usePathname();
-  const currentArea = navigationItems.find((item) =>
-    item.href === "/" ? pathname === "/" : pathname.startsWith(item.href),
-  );
+  const currentArea = navigationItems.find((item) => isActivePath(pathname, item.href));
 
   return (
     <div className={cn("flex items-center", compact ? "gap-2" : "gap-3")}>

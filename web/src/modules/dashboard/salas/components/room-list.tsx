@@ -2,7 +2,6 @@
 
 import { CalendarClock, Clock3, DoorOpen, Pencil, Trash2, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,11 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ActionIconButton } from "@/modules/dashboard/shared/components/action-icon-button";
 import { DashboardEmptyState } from "@/modules/dashboard/shared/components/dashboard-empty-state";
 import { DashboardListToolbar } from "@/modules/dashboard/shared/components/dashboard-list-toolbar";
+import { ActiveStatusBadge } from "@/modules/dashboard/shared/components/active-status-badge";
 import { PaginationFooter } from "@/modules/dashboard/shared/components/pagination-footer";
 import { useDashboardListState } from "@/modules/dashboard/shared/hooks/use-dashboard-list-state";
-import { formatRoomSchedule, normalize } from "@/utils/normalize";
+import { formatRoomSchedule } from "@/utils/normalize";
 import { useRooms } from "../services/rooms-service";
 import type { Room } from "../schemas/room-schema";
 
@@ -112,40 +113,26 @@ export function RoomList({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{normalize.status("Ativa")}</Badge>
+                        <ActiveStatusBadge active={room.active} />
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-none"
+                          <ActionIconButton
+                            label="Histórico"
+                            icon={<CalendarClock aria-hidden="true" className="size-4" />}
                             onClick={() => onShowHistory?.(room)}
-                          >
-                            <CalendarClock aria-hidden="true" className="size-4" />
-                            Histórico
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-none"
+                          />
+                          <ActionIconButton
+                            label="Editar"
+                            icon={<Pencil aria-hidden="true" className="size-4" />}
                             onClick={() => onEditRoom?.(room)}
-                          >
-                            <Pencil aria-hidden="true" className="size-4" />
-                            Editar
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
+                          />
+                          <ActionIconButton
+                            label="Excluir"
+                            icon={<Trash2 aria-hidden="true" className="size-4" />}
                             className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                             onClick={() => onDeleteRoom?.(room)}
-                          >
-                            <Trash2 aria-hidden="true" className="size-4" />
-                            Excluir
-                          </Button>
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -163,7 +150,7 @@ export function RoomList({
                 <article key={room.id} className="border border-border bg-card p-5">
                   <div className="flex items-start justify-between gap-3">
                     <h2 className="font-semibold">{room.name}</h2>
-                    <Badge variant="outline">{normalize.status("Ativa")}</Badge>
+                    <ActiveStatusBadge active={room.active} />
                   </div>
                   <div className="mt-5 space-y-3 text-sm text-muted-foreground">
                     <p className="flex items-center gap-2">
@@ -189,36 +176,22 @@ export function RoomList({
                     </div>
                   </div>
                   <div className="mt-5 flex items-center justify-end gap-1 border-t border-border pt-3">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-none"
+                    <ActionIconButton
+                      label="Histórico"
+                      icon={<CalendarClock aria-hidden="true" className="size-4" />}
                       onClick={() => onShowHistory?.(room)}
-                    >
-                      <CalendarClock aria-hidden="true" className="size-4" />
-                      Histórico
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-none"
+                    />
+                    <ActionIconButton
+                      label="Editar"
+                      icon={<Pencil aria-hidden="true" className="size-4" />}
                       onClick={() => onEditRoom?.(room)}
-                    >
-                      <Pencil aria-hidden="true" className="size-4" />
-                      Editar
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
+                    />
+                    <ActionIconButton
+                      label="Excluir"
+                      icon={<Trash2 aria-hidden="true" className="size-4" />}
                       className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => onDeleteRoom?.(room)}
-                    >
-                      <Trash2 aria-hidden="true" className="size-4" />
-                      Excluir
-                    </Button>
+                    />
                   </div>
                 </article>
               );

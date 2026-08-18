@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@generated/prisma/client';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import {
   AppointmentNotFoundException,
   AppointmentUnavailableException,
@@ -292,6 +294,22 @@ export class AppointmentsService {
     await this.appointmentsRepository.deactivate(id);
   }
 
+  async deleteInactive(input?: DeleteInactiveRecordsDto): Promise<void> {
+    try {
+      await this.appointmentsRepository.deleteInactive(input?.ids);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new BadRequestException(
+          'Não foi possível excluir definitivamente agendamentos com histórico vinculado.',
+        );
+      }
+      throw error;
+    }
+  }
+
   private async validateBaseEntities(
     visitorId: number,
     roomId: number,
@@ -572,6 +590,7 @@ export class AppointmentsService {
       visitor: {
         id: appointment.visitor.id,
         name: appointment.visitor.name,
+        documentType: appointment.visitor.documentType,
         document: appointment.visitor.document,
         priority: appointment.visitor.priorityType.description,
       },

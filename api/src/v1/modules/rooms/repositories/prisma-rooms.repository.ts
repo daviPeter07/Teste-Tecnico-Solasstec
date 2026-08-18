@@ -185,4 +185,29 @@ export class PrismaRoomsRepository implements RoomsRepository {
       data: { active: false },
     });
   }
+
+  async deleteInactive(ids?: number[]): Promise<number> {
+    const rooms = await this.prisma.room.findMany({
+      where: {
+        active: false,
+        ...(ids?.length ? { id: { in: ids } } : {}),
+      },
+      select: { id: true },
+    });
+    const roomIds = rooms.map((room) => room.id);
+    if (roomIds.length === 0) return 0;
+
+    return this.prisma.$transaction(async (transaction) => {
+      await transaction.roomResponsible.deleteMany({
+        where: { roomId: { in: roomIds } },
+      });
+      await transaction.roomAvailabilityHistory.deleteMany({
+        where: { roomId: { in: roomIds } },
+      });
+      const result = await transaction.room.deleteMany({
+        where: { id: { in: roomIds }, active: false },
+      });
+      return result.count;
+    });
+  }
 }

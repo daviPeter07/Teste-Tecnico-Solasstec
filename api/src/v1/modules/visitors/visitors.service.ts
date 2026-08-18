@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@generated/prisma/client';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import {
   InvalidVisitorDocumentException,
   PriorityTypeNotConfiguredException,
@@ -7,7 +8,7 @@ import {
   VisitorDocumentConflictException,
   VisitorNotFoundException,
 } from '@/common/exceptions';
-import { CreateVisitorDto } from './dto/create-visitor.dto';
+import { CreateVisitorDto, type DocumentType } from './dto/create-visitor.dto';
 import { ListVisitorsQueryDto } from './dto/list-visitors-query.dto';
 import { UpdateVisitorDto } from './dto/update-visitor.dto';
 import { VisitorResponseDto } from './dto/visitor-response.dto';
@@ -111,13 +112,14 @@ export class VisitorsService {
   ): Promise<VisitorResponseDto> {
     const existing = await this.visitorsRepository.findById(id);
     if (!existing) this.throwNotFound();
-    if (existing.documentType !== 'CPF') {
+    const documentType = input.documentType ?? existing.documentType;
+    if (!this.isSupportedDocumentType(documentType)) {
       throw new UnsupportedVisitorDocumentTypeException();
     }
 
     const payload: CreateVisitorDto = {
       name: input.name ?? existing.name,
-      documentType: 'CPF',
+      documentType,
       document: input.document ?? existing.document,
       birthDate: input.birthDate ?? formatDateToYYYYMMDD(existing.birthDate),
       hasDisability: input.hasDisability ?? existing.hasDisability,
@@ -138,6 +140,22 @@ export class VisitorsService {
     const existing = await this.visitorsRepository.findById(id);
     if (!existing) this.throwNotFound();
     await this.visitorsRepository.deactivate(id);
+  }
+
+  async deleteInactive(input?: DeleteInactiveRecordsDto): Promise<void> {
+    try {
+      await this.visitorsRepository.deleteInactive(input?.ids);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new BadRequestException(
+          'Não foi possível excluir definitivamente visitantes com histórico vinculado.',
+        );
+      }
+      throw error;
+    }
   }
 
   private async persistVisitor(
@@ -239,5 +257,9 @@ export class VisitorsService {
 
   private throwNotFound(): never {
     throw new VisitorNotFoundException();
+  }
+
+  private isSupportedDocumentType(value: string): value is DocumentType {
+    return value === 'CPF' || value === 'RG';
   }
 }

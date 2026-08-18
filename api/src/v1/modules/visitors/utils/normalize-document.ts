@@ -1,16 +1,20 @@
 import type { DocumentType } from '../dto/create-visitor.dto';
 
 export function normalizeDocument(
-  _type: DocumentType,
+  type: DocumentType,
   document: string,
 ): string {
-  return document.replace(/\D/g, '');
+  if (type === 'CPF') return document.replace(/\D/g, '');
+  return document.toUpperCase().replace(/[^A-Z0-9]/g, '');
 }
 
-export function isValidDocument(
-  _type: DocumentType,
-  document: string,
-): boolean {
+export function isValidDocument(type: DocumentType, document: string): boolean {
+  if (type === 'RG') {
+    return (
+      /^[A-Z0-9]{7,14}$/.test(document) && !/^([A-Z0-9])\1+$/.test(document)
+    );
+  }
+
   if (!/^\d{11}$/.test(document) || /^(\d)\1{10}$/.test(document)) return false;
 
   const calculateDigit = (length: number): number => {

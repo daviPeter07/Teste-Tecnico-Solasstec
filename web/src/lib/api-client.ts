@@ -22,15 +22,30 @@ export function buildListParams({
   search,
   page,
   limit,
+  active,
+  status,
+  startsFrom,
+  startsTo,
+  includeInactive,
 }: {
   search?: string;
   page: number;
   limit?: number;
+  active?: boolean;
+  status?: number;
+  startsFrom?: string;
+  startsTo?: string;
+  includeInactive?: boolean;
 }) {
   const params = new URLSearchParams();
   if (search) params.set("search", search);
   params.set("page", String(page));
   if (limit) params.set("limit", String(limit));
+  if (active !== undefined) params.set("active", String(active));
+  if (status) params.set("status", String(status));
+  if (startsFrom) params.set("startsFrom", startsFrom);
+  if (startsTo) params.set("startsTo", startsTo);
+  if (includeInactive !== undefined) params.set("includeInactive", String(includeInactive));
   return params;
 }
 

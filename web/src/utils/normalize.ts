@@ -110,6 +110,26 @@ export const normalize = {
       .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
   },
 
+  rg: (value: string): string => {
+    const normalized = value
+      ? value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 14)
+      : "";
+    if (normalized.length <= 2) return normalized;
+    if (normalized.length <= 5) {
+      return normalized.replace(/([A-Z0-9]{2})([A-Z0-9]+)/, "$1.$2");
+    }
+    if (normalized.length <= 8) {
+      return normalized.replace(
+        /([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]+)/,
+        "$1.$2.$3",
+      );
+    }
+    return normalized.replace(
+      /([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]+)/,
+      "$1.$2.$3-$4",
+    );
+  },
+
   /**
    * Converte qualquer texto de status para LETRAS MAIÚSCULAS.
    */

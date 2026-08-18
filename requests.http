@@ -1,0 +1,246 @@
+@baseUrl = http://localhost:3333/api/v1
+@seedVisitorDocument = 10000000108
+@newVisitorDocument = 10000009903
+@newVisitorRg = 12345678X
+@holidayDate = 2027-01-01
+
+### Health: confirma que API e banco estao respondendo
+GET {{baseUrl}}/health
+
+### Visitantes: lista visitantes ativos com paginacao padrao
+GET {{baseUrl}}/visitors
+
+### Visitantes: busca por nome ou documento
+GET {{baseUrl}}/visitors?search=Visitante&limit=15&page=1
+
+### Visitantes: busca um visitante pelo CPF do seed
+GET {{baseUrl}}/visitors/document/{{seedVisitorDocument}}
+
+### Visitantes: cria um visitante para testar POST
+# Se esse CPF ja tiver sido usado no seu banco, altere @newVisitorDocument para outro CPF valido.
+# @name createVisitor
+POST {{baseUrl}}/visitors
+Content-Type: application/json
+
+{
+  "name": "Visitante HTTP",
+  "documentType": "CPF",
+  "document": "{{newVisitorDocument}}",
+  "birthDate": "1991-05-10",
+  "hasDisability": false
+}
+
+### Visitantes: cria um visitante com RG para testar validacao
+# Se esse RG ja tiver sido usado no seu banco, altere @newVisitorRg para outro RG valido.
+# @name createVisitorWithRg
+POST {{baseUrl}}/visitors
+Content-Type: application/json
+
+{
+  "name": "Visitante RG HTTP",
+  "documentType": "RG",
+  "document": "{{newVisitorRg}}",
+  "birthDate": "1992-06-11",
+  "hasDisability": false
+}
+
+### Visitantes: busca o visitante criado pelo ID retornado no POST
+GET {{baseUrl}}/visitors/{{createVisitor.response.body.$.id}}
+
+### Visitantes: atualiza o visitante criado
+# @name updateVisitor
+PATCH {{baseUrl}}/visitors/{{createVisitor.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Visitante HTTP Atualizado",
+  "documentType": "CPF",
+  "document": "{{newVisitorDocument}}",
+  "birthDate": "1991-05-10",
+  "hasDisability": true
+}
+
+### Salas: lista salas ativas com paginacao padrao
+GET {{baseUrl}}/rooms
+
+### Salas: busca salas pelo nome ou responsavel
+GET {{baseUrl}}/rooms?search=Sala&limit=15&page=1
+
+### Salas: cria uma sala para testar POST
+# @name createRoom
+POST {{baseUrl}}/rooms
+Content-Type: application/json
+
+{
+  "name": "Sala HTTP",
+  "capacity": 5,
+  "responsibleName": "Responsavel HTTP",
+  "availability": [
+    { "dayOfWeek": 1, "opensAt": "08:00", "closesAt": "12:00" },
+    { "dayOfWeek": 3, "opensAt": "13:00", "closesAt": "18:00" },
+    { "dayOfWeek": 5, "opensAt": "09:00", "closesAt": "15:00" }
+  ]
+}
+
+### Salas: busca a sala criada pelo ID retornado no POST
+GET {{baseUrl}}/rooms/{{createRoom.response.body.$.id}}
+
+### Salas: consulta historico de responsavel e disponibilidade da sala criada
+GET {{baseUrl}}/rooms/{{createRoom.response.body.$.id}}/history
+
+### Salas: atualiza a sala criada
+# @name updateRoom
+PATCH {{baseUrl}}/rooms/{{createRoom.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Sala HTTP Atualizada",
+  "capacity": 7,
+  "responsibleName": "Responsavel HTTP Atualizado",
+  "availability": [
+    { "dayOfWeek": 1, "opensAt": "08:00", "closesAt": "12:00" },
+    { "dayOfWeek": 2, "opensAt": "10:00", "closesAt": "16:00" },
+    { "dayOfWeek": 3, "opensAt": "13:00", "closesAt": "18:00" }
+  ]
+}
+
+### Feriados: lista feriados ativos com paginacao padrao
+GET {{baseUrl}}/holidays
+
+### Feriados: busca feriado por descricao ou data
+GET {{baseUrl}}/holidays?search=Natal&limit=15&page=1
+
+### Feriados: cria um feriado para testar POST
+# Se essa data ja existir no seu banco, altere @holidayDate para uma data livre.
+# @name createHoliday
+POST {{baseUrl}}/holidays
+Content-Type: application/json
+
+{
+  "date": "{{holidayDate}}",
+  "description": "Feriado HTTP",
+  "type": 3
+}
+
+### Feriados: busca o feriado criado pelo ID retornado no POST
+GET {{baseUrl}}/holidays/{{createHoliday.response.body.$.id}}
+
+### Feriados: atualiza o feriado criado
+# @name updateHoliday
+PATCH {{baseUrl}}/holidays/{{createHoliday.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "date": "{{holidayDate}}",
+  "description": "Feriado HTTP Atualizado",
+  "type": 2
+}
+
+### Agendamentos: lista agendamentos ativos com paginacao padrao
+GET {{baseUrl}}/appointments
+
+### Agendamentos: lista historico completo, incluindo cancelados/inativos
+GET {{baseUrl}}/appointments?includeInactive=true&limit=15&page=1
+
+### Agendamentos: busca agendamentos por visitante, CPF ou sala
+GET {{baseUrl}}/appointments?search=Visitante&limit=15&page=1
+
+### Agendamentos: consulta horarios disponiveis da sala criada para uma segunda-feira
+GET {{baseUrl}}/appointments/availability?roomId={{createRoom.response.body.$.id}}&date=2026-08-31&visitorId={{createVisitor.response.body.$.id}}
+
+### Agendamentos: cria agendamento usando visitante e sala criados acima
+# @name createAppointment
+POST {{baseUrl}}/appointments
+Content-Type: application/json
+
+{
+  "visitorId": {{createVisitor.response.body.$.id}},
+  "roomId": {{createRoom.response.body.$.id}},
+  "date": "2026-08-31",
+  "startsAt": "10:00"
+}
+
+### Agendamentos: busca o agendamento criado pelo ID retornado no POST
+GET {{baseUrl}}/appointments/{{createAppointment.response.body.$.id}}
+
+### Agendamentos: atualiza sala, visitante, data ou horario do agendamento criado
+# @name updateAppointment
+PATCH {{baseUrl}}/appointments/{{createAppointment.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "visitorId": {{createVisitor.response.body.$.id}},
+  "roomId": {{createRoom.response.body.$.id}},
+  "date": "2026-08-31",
+  "startsAt": "11:00"
+}
+
+### Agendamentos: altera status do agendamento criado para confirmado
+PATCH {{baseUrl}}/appointments/{{createAppointment.response.body.$.id}}/status
+Content-Type: application/json
+
+{
+  "status": 2
+}
+
+### Agendamentos: cancela o agendamento criado, preservando historico
+DELETE {{baseUrl}}/appointments/{{createAppointment.response.body.$.id}}
+
+### Feriados: inativa o feriado criado acima
+DELETE {{baseUrl}}/holidays/{{createHoliday.response.body.$.id}}
+
+### Salas: inativa a sala criada acima
+DELETE {{baseUrl}}/rooms/{{createRoom.response.body.$.id}}
+
+### Visitantes: inativa o visitante criado acima
+DELETE {{baseUrl}}/visitors/{{createVisitor.response.body.$.id}}
+
+### Visitantes: inativa o visitante com RG criado acima
+DELETE {{baseUrl}}/visitors/{{createVisitorWithRg.response.body.$.id}}
+
+### Visitantes: exclui definitivamente visitantes inativos selecionados
+DELETE {{baseUrl}}/visitors/inactive
+Content-Type: application/json
+
+{
+  "ids": [{{createVisitor.response.body.$.id}}, {{createVisitorWithRg.response.body.$.id}}]
+}
+
+### Visitantes: exclui definitivamente todos os visitantes inativos
+# Use com cuidado: remove todos os visitantes inativos que nao tenham vinculos impeditivos.
+DELETE {{baseUrl}}/visitors/inactive
+
+### Salas: exclui definitivamente salas inativas selecionadas
+DELETE {{baseUrl}}/rooms/inactive
+Content-Type: application/json
+
+{
+  "ids": [{{createRoom.response.body.$.id}}]
+}
+
+### Salas: exclui definitivamente todas as salas inativas
+# Use com cuidado: remove todas as salas inativas que nao tenham vinculos impeditivos.
+DELETE {{baseUrl}}/rooms/inactive
+
+### Feriados: exclui definitivamente feriados inativos selecionados
+DELETE {{baseUrl}}/holidays/inactive
+Content-Type: application/json
+
+{
+  "ids": [{{createHoliday.response.body.$.id}}]
+}
+
+### Feriados: exclui definitivamente todos os feriados inativos
+DELETE {{baseUrl}}/holidays/inactive
+
+### Agendamentos: exclui definitivamente agendamentos inativos selecionados
+DELETE {{baseUrl}}/appointments/inactive
+Content-Type: application/json
+
+{
+  "ids": [{{createAppointment.response.body.$.id}}]
+}
+
+### Agendamentos: exclui definitivamente todos os agendamentos inativos
+# Use com cuidado: remove todos os agendamentos inativos que nao tenham vinculos impeditivos.
+DELETE {{baseUrl}}/appointments/inactive

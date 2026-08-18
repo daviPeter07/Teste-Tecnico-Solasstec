@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiErrorResponses } from '@/common/decorators/api-error-responses.decorator';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import {
   AppointmentListResponseDto,
   AppointmentResponseDto,
@@ -53,6 +54,15 @@ export class AppointmentsController {
     @Query() query: ListAppointmentSlotsQueryDto,
   ): Promise<AppointmentSlotsResponseDto> {
     return this.appointmentsService.slots(query);
+  }
+
+  @Delete('inactive')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Permanently delete inactive appointments' })
+  @ApiNoContentResponse()
+  @ApiErrorResponses(400)
+  deleteInactive(@Body() input?: DeleteInactiveRecordsDto): Promise<void> {
+    return this.appointmentsService.deleteInactive(input);
   }
 
   @Get(':id')

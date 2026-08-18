@@ -1,6 +1,7 @@
 export interface AppointmentVisitorRecord {
   id: number;
   name: string;
+  documentType: string;
   document: string;
   active: boolean;
   priorityType: { description: string };
@@ -34,6 +35,8 @@ export interface ListAppointmentsInput {
   visitorId?: number;
   roomId?: number;
   status?: number;
+  startsFrom?: string;
+  startsTo?: string;
   active: boolean;
   includeInactive?: boolean;
 }
@@ -82,4 +85,5 @@ export abstract class AppointmentsRepository {
   ): Promise<AppointmentRecord>;
   abstract updateStatus(id: number, status: number): Promise<AppointmentRecord>;
   abstract deactivate(id: number): Promise<void>;
+  abstract deleteInactive(ids?: number[]): Promise<number>;
 }

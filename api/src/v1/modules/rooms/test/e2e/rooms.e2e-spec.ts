@@ -124,7 +124,7 @@ describe('Rooms (e2e)', () => {
           currentResponsible: { name: 'Ana Souza' },
         },
       ],
-      meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      meta: { page: 1, limit: 15, total: 1, totalPages: 1 },
     });
   });
 

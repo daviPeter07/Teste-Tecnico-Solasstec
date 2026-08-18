@@ -2,7 +2,6 @@
 
 import { Pencil, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,14 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ActionIconButton } from "@/modules/dashboard/shared/components/action-icon-button";
 import { DashboardEmptyState } from "@/modules/dashboard/shared/components/dashboard-empty-state";
 import { DashboardListToolbar } from "@/modules/dashboard/shared/components/dashboard-list-toolbar";
+import { ActiveStatusBadge } from "@/modules/dashboard/shared/components/active-status-badge";
 import { PaginationFooter } from "@/modules/dashboard/shared/components/pagination-footer";
 import { useDashboardListState } from "@/modules/dashboard/shared/hooks/use-dashboard-list-state";
 import { formatDateOnly } from "@/utils/date-format";
 import { normalize } from "@/utils/normalize";
 import { useVisitors } from "../services/visitors-service";
 import type { Visitor } from "../schemas/visitor-schema";
+import { formatVisitorDocument } from "../utils/visitor-document";
 
 export interface VisitorListProps {
   onEditVisitor?: (visitor: Visitor) => void;
@@ -41,7 +43,7 @@ export function VisitorList({
       <DashboardListToolbar
         inputValue={inputValue}
         onSearchChange={onSearchChange}
-        placeholder="Buscar por nome ou CPF"
+        placeholder="Buscar por nome ou documento"
         ariaLabel="Buscar visitantes"
         createLabel="Novo visitante"
         onCreate={onCreateVisitor}
@@ -65,7 +67,7 @@ export function VisitorList({
           title={searchParam ? "Nenhum visitante encontrado" : "Nenhum visitante cadastrado"}
           description={
             searchParam
-              ? "Tente buscar por outro nome ou CPF."
+              ? "Tente buscar por outro nome ou documento."
               : "Cadastre o primeiro visitante para iniciar a operação."
           }
           actionLabel="Cadastrar visitante"
@@ -79,7 +81,7 @@ export function VisitorList({
               <TableHeader>
                 <TableRow>
                   <TableHead>Visitante</TableHead>
-                  <TableHead>CPF</TableHead>
+                  <TableHead>Documento</TableHead>
                   <TableHead>Nascimento</TableHead>
                   <TableHead>Prioridade</TableHead>
                   <TableHead>Status</TableHead>
@@ -129,47 +131,32 @@ function VisitorRow({
   onEdit?: (visitor: Visitor) => void;
   onDelete?: (visitor: Visitor) => void;
 }) {
-  const isLegacyDocument = visitor.documentType !== "CPF";
-
   return (
     <TableRow>
       <TableCell className="font-medium">{visitor.name}</TableCell>
-      <TableCell>{formatDocument(visitor)}</TableCell>
+      <TableCell>
+        {visitor.documentType} · {formatVisitorDocument(visitor.documentType, visitor.document)}
+      </TableCell>
       <TableCell>{formatDate(visitor.birthDate)}</TableCell>
       <TableCell>
         <PriorityBadge visitor={visitor} />
       </TableCell>
       <TableCell>
-        <Badge variant="outline">{normalize.status("Ativo")}</Badge>
+        <ActiveStatusBadge active={visitor.active} />
       </TableCell>
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="rounded-none"
-            disabled={isLegacyDocument}
-            title={
-              isLegacyDocument
-                ? "Cadastros legados com documento diferente de CPF não podem ser editados."
-                : undefined
-            }
+          <ActionIconButton
+            label="Editar"
+            icon={<Pencil aria-hidden="true" className="size-4" />}
             onClick={() => onEdit?.(visitor)}
-          >
-            <Pencil aria-hidden="true" className="size-4" />
-            Editar
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
+          />
+          <ActionIconButton
+            label="Excluir"
+            icon={<Trash2 aria-hidden="true" className="size-4" />}
             className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => onDelete?.(visitor)}
-          >
-            <Trash2 aria-hidden="true" className="size-4" />
-            Excluir
-          </Button>
+          />
         </div>
       </TableCell>
     </TableRow>
@@ -185,15 +172,13 @@ function VisitorCard({
   onEdit?: (visitor: Visitor) => void;
   onDelete?: (visitor: Visitor) => void;
 }) {
-  const isLegacyDocument = visitor.documentType !== "CPF";
-
   return (
     <article className="border border-border bg-card p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="font-semibold">{visitor.name}</h2>
           <p className="mt-1 font-mono text-xs text-muted-foreground">
-            CPF · {formatDocument(visitor)}
+            {visitor.documentType} · {formatVisitorDocument(visitor.documentType, visitor.document)}
           </p>
         </div>
         <PriorityBadge visitor={visitor} />
@@ -201,32 +186,17 @@ function VisitorCard({
       <div className="mt-5 flex items-center justify-between gap-3 text-sm text-muted-foreground">
         <p>Nascimento: {formatDate(visitor.birthDate)}</p>
         <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="rounded-none"
-            disabled={isLegacyDocument}
-            title={
-              isLegacyDocument
-                ? "Cadastros legados com documento diferente de CPF não podem ser editados."
-                : undefined
-            }
+          <ActionIconButton
+            label="Editar"
+            icon={<Pencil aria-hidden="true" className="size-4" />}
             onClick={() => onEdit?.(visitor)}
-          >
-            <Pencil aria-hidden="true" className="size-4" />
-            Editar
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
+          />
+          <ActionIconButton
+            label="Excluir"
+            icon={<Trash2 aria-hidden="true" className="size-4" />}
             className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => onDelete?.(visitor)}
-          >
-            <Trash2 aria-hidden="true" className="size-4" />
-            Excluir
-          </Button>
+          />
         </div>
       </div>
     </article>
@@ -266,10 +236,6 @@ function getPriorityBadge(priorityLevel: number) {
           "border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
       };
   }
-}
-
-function formatDocument(visitor: Visitor) {
-  return visitor.documentType === "CPF" ? normalize.cpf(visitor.document) : visitor.document;
 }
 
 function formatDate(isoString: string) {
