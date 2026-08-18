@@ -195,10 +195,14 @@ export class PrismaAppointmentsRepository implements AppointmentsRepository {
     });
   }
 
-  updateStatus(id: number, status: number): Promise<AppointmentRecord> {
+  updateStatus(
+    id: number,
+    status: number,
+    active?: boolean,
+  ): Promise<AppointmentRecord> {
     return this.prisma.appointment.update({
       where: { id },
-      data: { status },
+      data: { status, ...(active === undefined ? {} : { active }) },
       include: appointmentInclude,
     });
   }

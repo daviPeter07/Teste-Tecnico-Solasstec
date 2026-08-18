@@ -83,7 +83,11 @@ export abstract class AppointmentsRepository {
     id: number,
     input: SaveAppointmentInput,
   ): Promise<AppointmentRecord>;
-  abstract updateStatus(id: number, status: number): Promise<AppointmentRecord>;
+  abstract updateStatus(
+    id: number,
+    status: number,
+    active?: boolean,
+  ): Promise<AppointmentRecord>;
   abstract deactivate(id: number): Promise<void>;
   abstract deleteInactive(ids?: number[]): Promise<number>;
 }

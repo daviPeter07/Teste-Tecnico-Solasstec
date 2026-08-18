@@ -5,7 +5,7 @@ import { PaginationQueryDto } from '@/common/dto/pagination-query.dto';
 import { parseBooleanQuery } from '@/common/dto/parse-boolean-query';
 
 export class ListVisitorsQueryDto extends PaginationQueryDto {
-  @ApiPropertyOptional({ description: 'Busca por nome ou documento' })
+  @ApiPropertyOptional({ description: 'Busca por nome, CPF ou RG' })
   @IsString()
   @MaxLength(100)
   @IsOptional()

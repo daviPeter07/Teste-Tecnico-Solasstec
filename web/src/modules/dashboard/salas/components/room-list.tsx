@@ -128,7 +128,7 @@ export function RoomList({
                             onClick={() => onEditRoom?.(room)}
                           />
                           <ActionIconButton
-                            label="Excluir"
+                            label="Inativar"
                             icon={<Trash2 aria-hidden="true" className="size-4" />}
                             className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                             onClick={() => onDeleteRoom?.(room)}
@@ -187,7 +187,7 @@ export function RoomList({
                       onClick={() => onEditRoom?.(room)}
                     />
                     <ActionIconButton
-                      label="Excluir"
+                      label="Inativar"
                       icon={<Trash2 aria-hidden="true" className="size-4" />}
                       className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => onDeleteRoom?.(room)}

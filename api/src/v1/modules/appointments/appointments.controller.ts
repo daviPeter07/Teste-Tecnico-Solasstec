@@ -97,7 +97,7 @@ export class AppointmentsController {
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update appointment status' })
   @ApiOkResponse({ type: AppointmentResponseDto })
-  @ApiErrorResponses(404)
+  @ApiErrorResponses(400, 404, 422)
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() input: UpdateAppointmentStatusDto,
@@ -109,7 +109,7 @@ export class AppointmentsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Cancel an appointment' })
   @ApiNoContentResponse()
-  @ApiErrorResponses(404)
+  @ApiErrorResponses(400, 404)
   remove(@Param('id', ParseIntPipe) id: number): Promise<void> {
     return this.appointmentsService.remove(id);
   }

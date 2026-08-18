@@ -73,9 +73,11 @@ export function RoomsView() {
         <ConfirmDeleteModal
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
-          title="Excluir sala"
-          description={`Tem certeza que deseja excluir a sala "${roomToDelete?.name ?? "esta sala"}"? Esta ação não poderá ser desfeita.`}
+          title="Inativar sala"
+          description={`Tem certeza que deseja inativar a sala "${roomToDelete?.name ?? "esta sala"}"? O registro sairá da lista principal e ficará disponível em Inativos.`}
           isLoading={deleteRoom.isPending}
+          confirmLabel="Confirmar inativação"
+          loadingLabel="Inativando..."
           onConfirm={async () => {
             if (!roomToDelete) return;
             await deleteRoom.mutateAsync(roomToDelete.id);

@@ -1,4 +1,7 @@
-import { AppointmentUnavailableException } from '@/common/exceptions';
+import {
+  AppointmentUnavailableException,
+  InvalidAppointmentStatusTransitionException,
+} from '@/common/exceptions';
 import { AppointmentsService } from '../../appointments.service';
 import {
   AppointmentRecord,
@@ -195,5 +198,68 @@ describe('AppointmentsService', () => {
         ([input]) => input.ignoredId === 1,
       ),
     ).toBe(true);
+  });
+
+  it('rejects invalid status transitions', async () => {
+    repository.findById.mockResolvedValue({ ...appointment, status: 2 });
+
+    await expect(service.updateStatus(1, { status: 1 })).rejects.toBeInstanceOf(
+      InvalidAppointmentStatusTransitionException,
+    );
+
+    expect(repository.updateStatus.mock.calls).toHaveLength(0);
+  });
+
+  it('rejects status updates to the same status', async () => {
+    repository.findById.mockResolvedValue({ ...appointment, status: 4 });
+
+    await expect(service.updateStatus(1, { status: 4 })).rejects.toBeInstanceOf(
+      InvalidAppointmentStatusTransitionException,
+    );
+
+    expect(repository.updateStatus.mock.calls).toHaveLength(0);
+  });
+
+  it('cancels appointments by changing status and inactivating the record', async () => {
+    repository.updateStatus.mockResolvedValue({
+      ...appointment,
+      status: 3,
+      active: false,
+    });
+
+    await expect(service.updateStatus(1, { status: 3 })).resolves.toMatchObject(
+      {
+        status: 3,
+        active: false,
+      },
+    );
+
+    expect(repository.updateStatus.mock.calls[0]).toEqual([1, 3, false]);
+  });
+
+  it('rejects edits to finished appointments', async () => {
+    repository.findById.mockResolvedValue({ ...appointment, status: 4 });
+
+    await expect(
+      service.update(1, {
+        visitorId: 1,
+        roomId: 1,
+        date: '2026-08-20',
+        startsAt: '10:00',
+      }),
+    ).rejects.toBeInstanceOf(InvalidAppointmentStatusTransitionException);
+  });
+
+  it('rejects edits to canceled appointments', async () => {
+    repository.findById.mockResolvedValue({ ...appointment, status: 3 });
+
+    await expect(
+      service.update(1, {
+        visitorId: 1,
+        roomId: 1,
+        date: '2026-08-20',
+        startsAt: '10:00',
+      }),
+    ).rejects.toBeInstanceOf(InvalidAppointmentStatusTransitionException);
   });
 });

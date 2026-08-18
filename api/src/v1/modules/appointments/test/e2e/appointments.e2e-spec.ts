@@ -139,6 +139,35 @@ describe('Appointments (e2e)', () => {
     expect(findManyArgs?.where?.roomId).toBe(1);
   });
 
+  it('GET /api/v1/appointments can include inactive visitor history', async () => {
+    await request(app.getHttpServer() as Server)
+      .get('/api/v1/appointments?visitorId=1&includeInactive=true&page=1')
+      .expect(200);
+
+    const findManyCalls = prismaService.appointment.findMany.mock
+      .calls as Array<[{ where?: { active?: boolean; visitorId?: number } }]>;
+    const findManyArgs = findManyCalls.at(-1)?.[0];
+
+    expect(findManyArgs?.where?.active).toBeUndefined();
+    expect(findManyArgs?.where?.visitorId).toBe(1);
+  });
+
+  it('rejects invalid appointment status transitions', async () => {
+    prismaService.appointment.findFirst.mockResolvedValue({
+      ...appointment,
+      status: 2,
+    });
+
+    const response = await request(app.getHttpServer() as Server)
+      .patch('/api/v1/appointments/1/status')
+      .send({ status: 1 })
+      .expect(400);
+
+    expect(response.body).toMatchObject({
+      code: 'INVALID_APPOINTMENT_STATUS_TRANSITION',
+    });
+  });
+
   it('POST /api/v1/appointments creates an appointment', async () => {
     const response = await request(app.getHttpServer() as Server)
       .post('/api/v1/appointments')

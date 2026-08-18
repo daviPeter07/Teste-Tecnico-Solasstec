@@ -114,7 +114,7 @@ export function HolidayList({
                           onClick={() => onEditHoliday?.(holiday)}
                         />
                         <ActionIconButton
-                          label="Excluir"
+                          label="Inativar"
                           icon={<Trash2 aria-hidden="true" className="size-4" />}
                           className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => onDeleteHoliday?.(holiday)}
@@ -150,7 +150,7 @@ export function HolidayList({
                     onClick={() => onEditHoliday?.(holiday)}
                   />
                   <ActionIconButton
-                    label="Excluir"
+                    label="Inativar"
                     icon={<Trash2 aria-hidden="true" className="size-4" />}
                     className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => onDeleteHoliday?.(holiday)}

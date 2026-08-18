@@ -9,6 +9,9 @@ export function useVisitorModal() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [visitorToDelete, setVisitorToDelete] = useState<Visitor | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [visitorToShowHistory, setVisitorToShowHistory] =
+    useState<Visitor | null>(null);
 
   function openCreate() {
     setSelectedVisitor(null);
@@ -25,6 +28,11 @@ export function useVisitorModal() {
     setDeleteOpen(true);
   }
 
+  function openHistory(visitor: Visitor) {
+    setVisitorToShowHistory(visitor);
+    setHistoryOpen(true);
+  }
+
   return {
     open,
     setOpen,
@@ -35,5 +43,9 @@ export function useVisitorModal() {
     setDeleteOpen,
     visitorToDelete,
     openDelete,
+    historyOpen,
+    setHistoryOpen,
+    visitorToShowHistory,
+    openHistory,
   };
 }

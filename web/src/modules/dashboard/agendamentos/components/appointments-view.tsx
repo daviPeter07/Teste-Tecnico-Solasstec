@@ -78,6 +78,8 @@ export function AppointmentsView() {
           title="Cancelar agendamento"
           description={`Tem certeza que deseja cancelar o agendamento de "${appointmentToDelete?.visitor.name ?? "este visitante"}"? O histórico será preservado.`}
           isLoading={deleteAppointment.isPending}
+          confirmLabel="Confirmar cancelamento"
+          loadingLabel="Cancelando..."
           onConfirm={async () => {
             if (!appointmentToDelete) return;
             await deleteAppointment.mutateAsync(appointmentToDelete.id);

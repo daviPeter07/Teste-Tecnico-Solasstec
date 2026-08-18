@@ -18,6 +18,8 @@ export interface ConfirmDeleteModalProps {
   description: string;
   onConfirm: () => void | Promise<void>;
   isLoading?: boolean;
+  confirmLabel?: string;
+  loadingLabel?: string;
 }
 
 export function ConfirmDeleteModal({
@@ -27,6 +29,8 @@ export function ConfirmDeleteModal({
   description,
   onConfirm,
   isLoading = false,
+  confirmLabel = "Confirmar exclusão",
+  loadingLabel = "Excluindo...",
 }: ConfirmDeleteModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -64,7 +68,7 @@ export function ConfirmDeleteModal({
               void onConfirm();
             }}
           >
-            {isLoading ? "Excluindo..." : "Confirmar exclusão"}
+            {isLoading ? loadingLabel : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

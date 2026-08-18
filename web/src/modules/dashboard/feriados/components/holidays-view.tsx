@@ -44,9 +44,11 @@ export function HolidaysView() {
         <ConfirmDeleteModal
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
-          title="Excluir feriado"
-          description={`Tem certeza que deseja excluir o feriado "${holidayToDelete?.description ?? "este feriado"}"? Esta data deixará de bloquear novos agendamentos.`}
+          title="Inativar feriado"
+          description={`Tem certeza que deseja inativar o feriado "${holidayToDelete?.description ?? "este feriado"}"? Esta data deixará de bloquear novos agendamentos e ficará disponível em Inativos.`}
           isLoading={deleteHoliday.isPending}
+          confirmLabel="Confirmar inativação"
+          loadingLabel="Inativando..."
           onConfirm={async () => {
             if (!holidayToDelete) return;
             await deleteHoliday.mutateAsync(holidayToDelete.id);
