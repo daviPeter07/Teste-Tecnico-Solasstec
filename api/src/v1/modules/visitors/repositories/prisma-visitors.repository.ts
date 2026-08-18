@@ -107,4 +107,14 @@ export class PrismaVisitorsRepository implements VisitorsRepository {
       data: { active: false },
     });
   }
+
+  async deleteInactive(ids?: number[]): Promise<number> {
+    const result = await this.prisma.visitor.deleteMany({
+      where: {
+        active: false,
+        ...(ids?.length ? { id: { in: ids } } : {}),
+      },
+    });
+    return result.count;
+  }
 }

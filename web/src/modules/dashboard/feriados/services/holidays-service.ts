@@ -9,14 +9,30 @@ import {
   type HolidayFormData,
 } from "../schemas/holiday-schema";
 
-export function useHolidays(search: string, page: number, limit = 20) {
+export function useHolidays(search: string, page: number, limit = 15, active = true) {
   return useQuery({
-    queryKey: ["holidays", { search, page, limit }],
+    queryKey: ["holidays", { search, page, limit, active }],
     queryFn: async () => {
-      const params = buildListParams({ search, page, limit });
+      const params = buildListParams({ search, page, limit, active });
       const response = await fetch(getApiUrl(`/holidays?${params.toString()}`));
       return holidayListSchema.parse(await readApiResponse(response));
     },
+  });
+}
+
+export function useDeleteInactiveHolidays() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids?: number[]) => {
+      const response = await fetch(getApiUrl("/holidays/inactive"), {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: ids?.length ? JSON.stringify({ ids }) : undefined,
+      });
+      await readApiResponse(response);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["holidays"] }),
   });
 }
 

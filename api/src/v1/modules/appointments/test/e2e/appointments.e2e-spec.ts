@@ -12,6 +12,7 @@ describe('Appointments (e2e)', () => {
   const visitor = {
     id: 1,
     name: 'João Silva',
+    documentType: 'CPF',
     document: '12345678909',
     active: true,
     priorityType: { description: 'Normal' },
@@ -121,7 +122,7 @@ describe('Appointments (e2e)', () => {
           endsAt: '10:00',
         },
       ],
-      meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      meta: { page: 1, limit: 15, total: 1, totalPages: 1 },
     });
   });
 

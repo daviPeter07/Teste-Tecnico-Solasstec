@@ -55,4 +55,5 @@ export abstract class RoomsRepository {
   abstract create(input: CreateRoomInput): Promise<RoomRecord>;
   abstract update(id: number, input: CreateRoomInput): Promise<RoomRecord>;
   abstract deactivate(id: number): Promise<void>;
+  abstract deleteInactive(ids?: number[]): Promise<number>;
 }

@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiErrorResponses } from '@/common/decorators/api-error-responses.decorator';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import { CreateVisitorDto } from './dto/create-visitor.dto';
 import { ListVisitorsQueryDto } from './dto/list-visitors-query.dto';
 import { UpdateVisitorDto } from './dto/update-visitor.dto';
@@ -42,13 +43,22 @@ export class VisitorsController {
   }
 
   @Get('document/:document')
-  @ApiOperation({ summary: 'Find a visitor by CPF' })
+  @ApiOperation({ summary: 'Find a visitor by document' })
   @ApiOkResponse({ type: VisitorResponseDto })
   @ApiErrorResponses(404)
   findByDocument(
     @Param('document') document: string,
   ): Promise<VisitorResponseDto> {
     return this.visitorsService.findByDocument(document);
+  }
+
+  @Delete('inactive')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Permanently delete inactive visitors' })
+  @ApiNoContentResponse()
+  @ApiErrorResponses(400)
+  deleteInactive(@Body() input?: DeleteInactiveRecordsDto): Promise<void> {
+    return this.visitorsService.deleteInactive(input);
   }
 
   @Get(':id')

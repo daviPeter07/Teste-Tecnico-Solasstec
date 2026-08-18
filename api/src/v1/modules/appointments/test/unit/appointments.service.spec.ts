@@ -14,6 +14,7 @@ describe('AppointmentsService', () => {
   const visitor: AppointmentVisitorRecord = {
     id: 1,
     name: 'João Silva',
+    documentType: 'CPF',
     document: '12345678909',
     active: true,
     priorityType: { description: 'Normal' },

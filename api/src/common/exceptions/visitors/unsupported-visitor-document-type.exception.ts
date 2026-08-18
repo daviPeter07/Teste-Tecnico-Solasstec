@@ -6,7 +6,7 @@ export class UnsupportedVisitorDocumentTypeException extends AppException {
     super(
       HttpStatus.BAD_REQUEST,
       'UNSUPPORTED_VISITOR_DOCUMENT_TYPE',
-      'Este cadastro legado possui um tipo de documento não suportado pela versão atual.',
+      'Este cadastro possui um tipo de documento não suportado pela versão atual.',
     );
   }
 }

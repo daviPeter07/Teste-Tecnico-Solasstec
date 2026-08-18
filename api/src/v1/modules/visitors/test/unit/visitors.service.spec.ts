@@ -39,6 +39,7 @@ describe('VisitorsService', () => {
       create: jest.fn(),
       update: jest.fn(),
       deactivate: jest.fn(),
+      deleteInactive: jest.fn(),
     };
     service = new VisitorsService(
       repository,
@@ -85,6 +86,34 @@ describe('VisitorsService', () => {
         hasDisability: false,
       }),
     ).rejects.toBeInstanceOf(VisitorDocumentConflictException);
+  });
+
+  it('normalizes and persists RG documents', async () => {
+    const rgVisitor: VisitorRecord = {
+      ...visitor,
+      documentType: 'RG',
+      document: '12345678X',
+    };
+    repository.findByDocument.mockResolvedValue(null);
+    repository.findPriorityByLevel.mockResolvedValue(visitor.priorityType);
+    repository.create.mockResolvedValue(rgVisitor);
+
+    await expect(
+      service.create({
+        name: 'Joao da Silva',
+        documentType: 'RG',
+        document: '12.345.678-X',
+        birthDate: '1990-01-01',
+        hasDisability: false,
+      }),
+    ).resolves.toMatchObject({ documentType: 'RG', document: '12345678X' });
+
+    expect(repository.create.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        documentType: 'RG',
+        document: '12345678X',
+      }),
+    );
   });
 
   it('refreshes age priority when the visitor has turned 60', async () => {

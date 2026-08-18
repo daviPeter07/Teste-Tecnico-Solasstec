@@ -29,6 +29,7 @@ export const appointmentSchema = z.object({
   visitor: z.object({
     id: z.number(),
     name: z.string(),
+    documentType: z.string(),
     document: z.string(),
     priority: z.string(),
   }),

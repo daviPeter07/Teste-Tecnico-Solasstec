@@ -1,8 +1,6 @@
 "use client";
 
 import { CalendarDays, Pencil, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,12 +9,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ActionIconButton } from "@/modules/dashboard/shared/components/action-icon-button";
+import { ActiveStatusBadge } from "@/modules/dashboard/shared/components/active-status-badge";
 import { DashboardEmptyState } from "@/modules/dashboard/shared/components/dashboard-empty-state";
 import { DashboardListToolbar } from "@/modules/dashboard/shared/components/dashboard-list-toolbar";
 import { PaginationFooter } from "@/modules/dashboard/shared/components/pagination-footer";
 import { useDashboardListState } from "@/modules/dashboard/shared/hooks/use-dashboard-list-state";
 import { formatDateOnly } from "@/utils/date-format";
-import { normalize } from "@/utils/normalize";
 import { useHolidays } from "../services/holidays-service";
 import type { Holiday } from "../schemas/holiday-schema";
 
@@ -105,30 +104,21 @@ export function HolidayList({
                     <TableCell>{holiday.description}</TableCell>
                     <TableCell>{getHolidayTypeLabel(holiday.type)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{normalize.status("Ativo")}</Badge>
+                      <ActiveStatusBadge active={holiday.active} />
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-none"
+                        <ActionIconButton
+                          label="Editar"
+                          icon={<Pencil aria-hidden="true" className="size-4" />}
                           onClick={() => onEditHoliday?.(holiday)}
-                        >
-                          <Pencil aria-hidden="true" className="size-4" />
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
+                        />
+                        <ActionIconButton
+                          label="Excluir"
+                          icon={<Trash2 aria-hidden="true" className="size-4" />}
                           className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => onDeleteHoliday?.(holiday)}
-                        >
-                          <Trash2 aria-hidden="true" className="size-4" />
-                          Excluir
-                        </Button>
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -148,32 +138,23 @@ export function HolidayList({
                       {formatDateOnly(holiday.date)}
                     </p>
                   </div>
-                  <Badge variant="outline">{normalize.status("Ativo")}</Badge>
+                  <ActiveStatusBadge active={holiday.active} />
                 </div>
                 <p className="mt-4 text-sm text-muted-foreground">
                   Tipo: {getHolidayTypeLabel(holiday.type)}
                 </p>
                 <div className="mt-5 flex items-center justify-end gap-1 border-t border-border pt-3">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="rounded-none"
+                  <ActionIconButton
+                    label="Editar"
+                    icon={<Pencil aria-hidden="true" className="size-4" />}
                     onClick={() => onEditHoliday?.(holiday)}
-                  >
-                    <Pencil aria-hidden="true" className="size-4" />
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
+                  />
+                  <ActionIconButton
+                    label="Excluir"
+                    icon={<Trash2 aria-hidden="true" className="size-4" />}
                     className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => onDeleteHoliday?.(holiday)}
-                  >
-                    <Trash2 aria-hidden="true" className="size-4" />
-                    Excluir
-                  </Button>
+                  />
                 </div>
               </article>
             ))}

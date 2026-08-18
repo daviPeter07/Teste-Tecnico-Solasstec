@@ -1,16 +1,19 @@
 import { z } from "zod";
 import { paginatedSchema } from "@/modules/dashboard/shared/schemas/pagination-schema";
-import { isValidCpf } from "@/utils/validators";
+import { isValidCpf, isValidRg } from "@/utils/validators";
+
+export const documentTypes = ["CPF", "RG"] as const;
+export type VisitorDocumentType = (typeof documentTypes)[number];
 
 export const visitorFormSchema = z
   .object({
     name: z.string().trim().min(2, "Informe o nome completo.").max(100),
-    documentType: z.literal("CPF"),
+    documentType: z.enum(documentTypes),
     document: z
       .string()
       .trim()
-      .min(11, "Informe um CPF válido.")
-      .max(14, "Informe um CPF válido."),
+      .min(7, "Informe um documento válido.")
+      .max(20, "Informe um documento válido."),
     birthDate: z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "Informe a data de nascimento."),
@@ -18,10 +21,18 @@ export const visitorFormSchema = z
     photo: z.union([z.literal(""), z.url("Informe uma URL válida.")]),
   })
   .superRefine((data, ctx) => {
-    if (!isValidCpf(data.document)) {
+    if (data.documentType === "CPF" && !isValidCpf(data.document)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "CPF inválido.",
+        path: ["document"],
+      });
+    }
+
+    if (data.documentType === "RG" && !isValidRg(data.document)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "RG inválido.",
         path: ["document"],
       });
     }

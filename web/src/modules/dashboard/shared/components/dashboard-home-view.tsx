@@ -14,6 +14,7 @@ import { useHolidays } from "@/modules/dashboard/feriados/services/holidays-serv
 import { useRooms } from "@/modules/dashboard/salas/services/rooms-service";
 import { useVisitors } from "@/modules/dashboard/visitantes/services/visitors-service";
 import {
+  addDaysDateOnly,
   daysBetweenDateOnly,
   formatDateOnly,
   getDateOnlyInTimeZone,
@@ -23,12 +24,18 @@ import { PageHeader } from "./page-header";
 export function DashboardHomeView() {
   const visitors = useVisitors("", 1, 1);
   const rooms = useRooms("", 1, 1);
-  const appointments = useAppointments("", 1);
   const holidays = useHolidays("", 1, 100);
   const today = getDateOnlyInTimeZone();
+  const nextSevenDays = addDaysDateOnly(today, 7);
+  const confirmedAppointments = useAppointments("", 1, {
+    limit: 1,
+    status: 2,
+    startsFrom: today,
+    startsTo: nextSevenDays,
+  });
   const nextHoliday = holidays.data?.data.find((holiday) => holiday.active && holiday.date >= today);
   const nextHolidayDays = nextHoliday ? daysBetweenDateOnly(today, nextHoliday.date) : null;
-  const isLoadingKpis = visitors.isLoading || rooms.isLoading || appointments.isLoading || holidays.isLoading;
+  const isLoadingKpis = visitors.isLoading || rooms.isLoading || confirmedAppointments.isLoading || holidays.isLoading;
 
   const kpis = [
     {
@@ -39,16 +46,16 @@ export function DashboardHomeView() {
       className: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
     },
     {
-      label: "Salas ativas",
+      label: "Salas disponíveis",
       value: rooms.data?.meta.total,
       hint: "Ambientes disponíveis para uso",
       icon: DoorOpen,
       className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
     },
     {
-      label: "Agendamentos ativos",
-      value: appointments.data?.meta.total,
-      hint: "Horários em andamento na agenda",
+      label: "Confirmados em 7 dias",
+      value: confirmedAppointments.data?.meta.total,
+      hint: "Agenda confirmada da semana",
       icon: CalendarClock,
       className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
     },

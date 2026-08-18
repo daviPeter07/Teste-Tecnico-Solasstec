@@ -27,6 +27,11 @@ export function isValidCpf(cpf: string): boolean {
   return true;
 }
 
+export function isValidRg(rg: string): boolean {
+  const value = rg ? rg.toUpperCase().replace(/[^A-Z0-9]/g, "") : "";
+  return /^[A-Z0-9]{7,14}$/.test(value) && !/^([A-Z0-9])\1+$/.test(value);
+}
+
 /**
  * Schemas Zod prontos para reuso em formulários.
  */

@@ -1,8 +1,7 @@
 "use client";
 
-import { CalendarClock, Pencil, Trash2 } from "lucide-react";
+import { CalendarClock, CheckCircle2, CircleCheckBig, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -11,13 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ActionIconButton } from "@/modules/dashboard/shared/components/action-icon-button";
 import { DashboardEmptyState } from "@/modules/dashboard/shared/components/dashboard-empty-state";
 import { DashboardListToolbar } from "@/modules/dashboard/shared/components/dashboard-list-toolbar";
 import { PaginationFooter } from "@/modules/dashboard/shared/components/pagination-footer";
 import { useDashboardListState } from "@/modules/dashboard/shared/hooks/use-dashboard-list-state";
 import { formatDateOnly } from "@/utils/date-format";
 import type { Appointment } from "../schemas/appointment-schema";
-import { useAppointments } from "../services/appointments-service";
+import { useAppointments, useUpdateAppointmentStatus } from "../services/appointments-service";
 import { getAppointmentStatusBadge } from "../utils/appointment-status-badge";
 
 export interface AppointmentListProps {
@@ -35,13 +35,18 @@ export function AppointmentList({
     useDashboardListState();
 
   const appointments = useAppointments(searchParam.trim(), pageParam);
+  const updateStatus = useUpdateAppointmentStatus();
+
+  function updateAppointmentStatus(appointment: Appointment, status: number) {
+    updateStatus.mutate({ id: appointment.id, status });
+  }
 
   return (
     <section className="space-y-5">
       <DashboardListToolbar
         inputValue={inputValue}
         onSearchChange={onSearchChange}
-        placeholder="Buscar por visitante, CPF ou sala"
+        placeholder="Buscar por visitante, documento ou sala"
         ariaLabel="Buscar agendamentos"
         createLabel="Novo agendamento"
         onCreate={onCreateAppointment}
@@ -63,7 +68,7 @@ export function AppointmentList({
           title={searchParam ? "Nenhum agendamento encontrado" : "Nenhum agendamento cadastrado"}
           description={
             searchParam
-              ? "Tente buscar por outro visitante, CPF ou sala."
+              ? "Tente buscar por outro visitante, documento ou sala."
               : "Crie o primeiro agendamento validando sala, feriados e conflitos automaticamente."
           }
           actionLabel="Novo agendamento"
@@ -102,22 +107,37 @@ export function AppointmentList({
                     <TableCell>
                       <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button type="button" variant="ghost" size="sm" className="rounded-none" onClick={() => onEditAppointment?.(appointment)}>
-                          <Pencil aria-hidden="true" className="size-4" />
-                          Editar
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {appointment.status === 1 && (
+                            <ActionIconButton
+                              label="Confirmar"
+                              icon={<CheckCircle2 aria-hidden="true" className="size-4" />}
+                              className="rounded-none text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                              disabled={updateStatus.isPending}
+                              onClick={() => updateAppointmentStatus(appointment, 2)}
+                            />
+                          )}
+                          {appointment.status === 2 && (
+                            <ActionIconButton
+                              label="Finalizar"
+                              icon={<CircleCheckBig aria-hidden="true" className="size-4" />}
+                              className="rounded-none text-sky-700 hover:bg-sky-50 hover:text-sky-800 dark:text-sky-300 dark:hover:bg-sky-950/40"
+                              disabled={updateStatus.isPending}
+                              onClick={() => updateAppointmentStatus(appointment, 4)}
+                            />
+                          )}
+                          <ActionIconButton
+                            label="Editar"
+                            icon={<Pencil aria-hidden="true" className="size-4" />}
+                            onClick={() => onEditAppointment?.(appointment)}
+                          />
+                        <ActionIconButton
+                          label="Cancelar"
+                          icon={<Trash2 aria-hidden="true" className="size-4" />}
                           className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => onDeleteAppointment?.(appointment)}
-                        >
-                          <Trash2 aria-hidden="true" className="size-4" />
-                          Cancelar
-                        </Button>
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
@@ -148,20 +168,35 @@ export function AppointmentList({
                   {formatDateOnly(appointment.date)} · {appointment.startsAt}
                 </p>
                 <div className="mt-5 flex items-center justify-end gap-1 border-t border-border pt-3">
-                  <Button type="button" variant="ghost" size="sm" className="rounded-none" onClick={() => onEditAppointment?.(appointment)}>
-                    <Pencil aria-hidden="true" className="size-4" />
-                    Editar
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
+                  {appointment.status === 1 && (
+                    <ActionIconButton
+                      label="Confirmar"
+                      icon={<CheckCircle2 aria-hidden="true" className="size-4" />}
+                      className="rounded-none text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                      disabled={updateStatus.isPending}
+                      onClick={() => updateAppointmentStatus(appointment, 2)}
+                    />
+                  )}
+                  {appointment.status === 2 && (
+                    <ActionIconButton
+                      label="Finalizar"
+                      icon={<CircleCheckBig aria-hidden="true" className="size-4" />}
+                      className="rounded-none text-sky-700 hover:bg-sky-50 hover:text-sky-800 dark:text-sky-300 dark:hover:bg-sky-950/40"
+                      disabled={updateStatus.isPending}
+                      onClick={() => updateAppointmentStatus(appointment, 4)}
+                    />
+                  )}
+                  <ActionIconButton
+                    label="Editar"
+                    icon={<Pencil aria-hidden="true" className="size-4" />}
+                    onClick={() => onEditAppointment?.(appointment)}
+                  />
+                  <ActionIconButton
+                    label="Cancelar"
+                    icon={<Trash2 aria-hidden="true" className="size-4" />}
                     className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
                     onClick={() => onDeleteAppointment?.(appointment)}
-                  >
-                    <Trash2 aria-hidden="true" className="size-4" />
-                    Cancelar
-                  </Button>
+                  />
                 </div>
               </article>
               );

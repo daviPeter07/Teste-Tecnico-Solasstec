@@ -92,6 +92,39 @@ describe('Visitor and room registrations (e2e)', () => {
     });
   });
 
+  it('POST /api/v1/visitors accepts RG documents', async () => {
+    prismaService.visitor.findFirst.mockResolvedValue(null);
+    prismaService.priorityType.findUnique.mockResolvedValue(priorityType);
+    prismaService.visitor.create.mockResolvedValue({
+      id: 2,
+      name: 'Joao da Silva',
+      documentType: 'RG',
+      document: '12345678X',
+      birthDate: new Date('1990-01-01T00:00:00.000Z'),
+      hasDisability: false,
+      photo: null,
+      active: true,
+      createdAt: new Date('2026-08-15T12:00:00.000Z'),
+      priorityType,
+    });
+
+    const response = await request(app.getHttpServer() as Server)
+      .post('/api/v1/visitors')
+      .send({
+        name: 'Joao da Silva',
+        documentType: 'RG',
+        document: '12.345.678-X',
+        birthDate: '1990-01-01',
+        hasDisability: false,
+      })
+      .expect(201);
+
+    expect(response.body).toMatchObject({
+      documentType: 'RG',
+      document: '12345678X',
+    });
+  });
+
   it('rejects whitespace-only visitor names', async () => {
     await request(app.getHttpServer() as Server)
       .post('/api/v1/visitors')

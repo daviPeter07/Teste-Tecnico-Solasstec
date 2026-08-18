@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Prisma } from '@generated/prisma/client';
 import { RoomNotFoundException } from '@/common/exceptions';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { ListRoomsQueryDto } from './dto/list-rooms-query.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
@@ -83,6 +85,22 @@ export class RoomsService {
     const existing = await this.roomsRepository.findById(id);
     if (!existing) this.throwNotFound();
     await this.roomsRepository.deactivate(id);
+  }
+
+  async deleteInactive(input?: DeleteInactiveRecordsDto): Promise<void> {
+    try {
+      await this.roomsRepository.deleteInactive(input?.ids);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2003'
+      ) {
+        throw new BadRequestException(
+          'Não foi possível excluir definitivamente salas com histórico vinculado.',
+        );
+      }
+      throw error;
+    }
   }
 
   private toResponse(room: RoomRecord): RoomResponseDto {

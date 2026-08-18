@@ -22,8 +22,11 @@ import { FormDialogLayout } from "@/modules/dashboard/shared/components/form-dia
 import type { Room } from "@/modules/dashboard/salas/schemas/room-schema";
 import { useRooms } from "@/modules/dashboard/salas/services/rooms-service";
 import { useVisitors } from "@/modules/dashboard/visitantes/services/visitors-service";
+import {
+  formatVisitorDocument,
+  getVisitorDocumentLabel,
+} from "@/modules/dashboard/visitantes/utils/visitor-document";
 import { formatDateOnly, formatDateTimeInManaus } from "@/utils/date-format";
-import { normalize } from "@/utils/normalize";
 import {
   appointmentFormSchema,
   type Appointment,
@@ -74,9 +77,15 @@ export function AppointmentFormModal({
       visitors.data?.data.map((visitor) => ({
         value: String(visitor.id),
         label: visitor.name,
-        description: `${normalize.cpf(visitor.document)} ${visitor.priorityType.description}`,
+        description: `${getVisitorDocumentLabel(
+          visitor.documentType,
+          visitor.document,
+        )} ${visitor.priorityType.description}`,
         details: [
-          { label: "CPF", value: normalize.cpf(visitor.document) },
+          {
+            label: visitor.documentType,
+            value: formatVisitorDocument(visitor.documentType, visitor.document),
+          },
           { value: visitor.priorityType.description },
         ],
       })) ?? [],

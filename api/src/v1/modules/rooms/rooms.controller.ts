@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiErrorResponses } from '@/common/decorators/api-error-responses.decorator';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { ListRoomsQueryDto } from './dto/list-rooms-query.dto';
 import {
@@ -49,6 +50,15 @@ export class RoomsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<RoomHistoryResponseDto> {
     return this.roomsService.history(id);
+  }
+
+  @Delete('inactive')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Permanently delete inactive rooms' })
+  @ApiNoContentResponse()
+  @ApiErrorResponses(400)
+  deleteInactive(@Body() input?: DeleteInactiveRecordsDto): Promise<void> {
+    return this.roomsService.deleteInactive(input);
   }
 
   @Get(':id')

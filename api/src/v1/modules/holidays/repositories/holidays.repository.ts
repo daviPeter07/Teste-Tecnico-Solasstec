@@ -29,4 +29,5 @@ export abstract class HolidaysRepository {
   abstract create(input: SaveHolidayInput): Promise<HolidayRecord>;
   abstract update(id: number, input: SaveHolidayInput): Promise<HolidayRecord>;
   abstract deactivate(id: number): Promise<void>;
+  abstract deleteInactive(ids?: number[]): Promise<number>;
 }

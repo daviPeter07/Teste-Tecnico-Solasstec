@@ -14,8 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatDateOnly } from "@/utils/date-format";
-import { normalize } from "@/utils/normalize";
 import { useRoomAppointmentHistory } from "@/modules/dashboard/agendamentos/services/appointments-service";
+import { getVisitorDocumentLabel } from "@/modules/dashboard/visitantes/utils/visitor-document";
 import type { Room } from "../schemas/room-schema";
 
 export interface RoomAppointmentHistoryModalProps {
@@ -87,7 +87,10 @@ export function RoomAppointmentHistoryModal({
                       <Badge className={statusBadge.className}>{statusBadge.label}</Badge>
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      CPF {normalize.cpf(appointment.visitor.document)} · {appointment.visitor.priority}
+                      {getVisitorDocumentLabel(
+                        appointment.visitor.documentType,
+                        appointment.visitor.document,
+                      )} · {appointment.visitor.priority}
                     </p>
                   </div>
                   <div className="text-left sm:text-right">

@@ -8,6 +8,9 @@ export class AppointmentVisitorResponseDto {
   @ApiProperty({ example: 'João Silva' })
   name!: string;
 
+  @ApiProperty({ enum: ['CPF', 'RG'], example: 'CPF' })
+  documentType!: string;
+
   @ApiProperty({ example: '12345678909' })
   document!: string;
 

@@ -6,7 +6,7 @@ export class InvalidVisitorDocumentException extends AppException {
     super(
       HttpStatus.BAD_REQUEST,
       'INVALID_VISITOR_DOCUMENT',
-      'O CPF informado é inválido.',
+      'O documento informado é inválido.',
     );
   }
 }

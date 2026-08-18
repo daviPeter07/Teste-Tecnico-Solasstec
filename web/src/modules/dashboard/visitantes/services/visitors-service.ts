@@ -9,14 +9,30 @@ import {
   type VisitorFormData,
 } from "../schemas/visitor-schema";
 
-export function useVisitors(search: string, page: number, limit = 20) {
+export function useVisitors(search: string, page: number, limit = 15, active = true) {
   return useQuery({
-    queryKey: ["visitors", { search, page, limit }],
+    queryKey: ["visitors", { search, page, limit, active }],
     queryFn: async () => {
-      const params = buildListParams({ search, page, limit });
+      const params = buildListParams({ search, page, limit, active });
       const response = await fetch(getApiUrl(`/visitors?${params.toString()}`));
       return visitorListSchema.parse(await readApiResponse(response));
     },
+  });
+}
+
+export function useDeleteInactiveVisitors() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (ids?: number[]) => {
+      const response = await fetch(getApiUrl("/visitors/inactive"), {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: ids?.length ? JSON.stringify({ ids }) : undefined,
+      });
+      await readApiResponse(response);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["visitors"] }),
   });
 }
 

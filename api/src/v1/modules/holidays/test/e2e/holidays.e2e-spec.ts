@@ -82,7 +82,7 @@ describe('Holidays (e2e)', () => {
           createdAt: '2026-08-18T12:00:00.000Z',
         },
       ],
-      meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
+      meta: { page: 1, limit: 15, total: 1, totalPages: 1 },
     });
   });
 

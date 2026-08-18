@@ -19,6 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { ApiErrorResponses } from '@/common/decorators/api-error-responses.decorator';
+import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import { CreateHolidayDto } from './dto/create-holiday.dto';
 import {
   HolidayListResponseDto,
@@ -38,6 +39,15 @@ export class HolidaysController {
   @ApiOkResponse({ type: HolidayListResponseDto })
   list(@Query() query: ListHolidaysQueryDto): Promise<HolidayListResponseDto> {
     return this.holidaysService.list(query);
+  }
+
+  @Delete('inactive')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Permanently delete inactive holidays' })
+  @ApiNoContentResponse()
+  @ApiErrorResponses(400)
+  deleteInactive(@Body() input?: DeleteInactiveRecordsDto): Promise<void> {
+    return this.holidaysService.deleteInactive(input);
   }
 
   @Get(':id')
