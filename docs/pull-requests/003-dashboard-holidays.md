@@ -10,6 +10,7 @@ Agendamentos continuam fora do escopo desta entrega. Os feriados cadastrados pas
 
 - CRUD backend de feriados em `/api/v1/holidays`.
 - CRUD frontend de feriados na rota `/feriados`.
+- Frontend integrado diretamente ao backend, sem route handlers `/api` no Next.js para proxy interno.
 - Busca, paginação, criação, edição e exclusão lógica de feriados.
 - Validação de data no formato `YYYY-MM-DD` e conflito por data duplicada.
 - Mensagens de erro de feriados ajustadas para linguagem de usuário.
@@ -101,14 +102,16 @@ services/    # fetch, queries e mutations
 - `docker compose up -d --build api`
 - `GET http://localhost:3333/api/v1/holidays?page=1`
 
-## Commits
+## Commits principais
 
+- `fix(web): call backend API directly from dashboard`
+- `refactor(api): group domain exceptions`
 - `feat(api): add holiday CRUD module`
 - `feat(web): add holidays dashboard CRUD`
+- `perf(web): simplify dialog animations`
 - `refactor(web): move dashboard data operations to services`
-- `refactor(api): group domain exceptions`
-- `test(api): add holidays and rooms e2e coverage`
 - `fix(api): allow mocked e2e without database URL`
+- `test(api): add rooms and holidays e2e coverage`
 - `docs: consolidate PR docs and update README`
 
 ## Checklist
