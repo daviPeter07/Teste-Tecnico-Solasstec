@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { paginatedSchema } from "@/modules/dashboard/shared/schemas/pagination-schema";
-
-function isValidDateOnly(value: string): boolean {
-  const date = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
+import { isValidDateOnly } from "@/utils/date-format";
 
 export const appointmentStatusSchema = z.union([
   z.literal(1),

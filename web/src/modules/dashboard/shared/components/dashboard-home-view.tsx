@@ -13,34 +13,21 @@ import { useAppointments } from "@/modules/dashboard/agendamentos/services/appoi
 import { useHolidays } from "@/modules/dashboard/feriados/services/holidays-service";
 import { useRooms } from "@/modules/dashboard/salas/services/rooms-service";
 import { useVisitors } from "@/modules/dashboard/visitantes/services/visitors-service";
-import { formatDateOnly } from "@/utils/date-format";
+import {
+  daysBetweenDateOnly,
+  formatDateOnly,
+  getDateOnlyInTimeZone,
+} from "@/utils/date-format";
 import { PageHeader } from "./page-header";
-
-function todayInManaus() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Manaus",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  return `${values.year}-${values.month}-${values.day}`;
-}
-
-function daysUntil(date: string, today: string) {
-  const target = new Date(`${date}T00:00:00.000Z`).getTime();
-  const current = new Date(`${today}T00:00:00.000Z`).getTime();
-  return Math.max(0, Math.round((target - current) / 86400000));
-}
 
 export function DashboardHomeView() {
   const visitors = useVisitors("", 1, 1);
   const rooms = useRooms("", 1, 1);
   const appointments = useAppointments("", 1);
   const holidays = useHolidays("", 1, 100);
-  const today = todayInManaus();
+  const today = getDateOnlyInTimeZone();
   const nextHoliday = holidays.data?.data.find((holiday) => holiday.active && holiday.date >= today);
-  const nextHolidayDays = nextHoliday ? daysUntil(nextHoliday.date, today) : null;
+  const nextHolidayDays = nextHoliday ? daysBetweenDateOnly(today, nextHoliday.date) : null;
   const isLoadingKpis = visitors.isLoading || rooms.isLoading || appointments.isLoading || holidays.isLoading;
 
   const kpis = [
