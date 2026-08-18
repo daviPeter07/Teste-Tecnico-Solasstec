@@ -8,9 +8,15 @@ export const envValidationSchema = Joi.object({
   API_PREFIX: Joi.string().trim().default('api/v1'),
   BUSINESS_TIME_ZONE: Joi.string().default('America/Manaus'),
   CORS_ORIGIN: Joi.string().trim().allow('').optional(),
-  DATABASE_URL: Joi.string()
-    .uri({ scheme: ['postgres', 'postgresql'] })
-    .required(),
+  DATABASE_URL: Joi.when('NODE_ENV', {
+    is: 'test',
+    then: Joi.string()
+      .uri({ scheme: ['postgres', 'postgresql'] })
+      .optional(),
+    otherwise: Joi.string()
+      .uri({ scheme: ['postgres', 'postgresql'] })
+      .required(),
+  }),
   SWAGGER_ENABLED: Joi.boolean().truthy('true').falsy('false').default(true),
   SWAGGER_PATH: Joi.string().trim().default('docs'),
 });
