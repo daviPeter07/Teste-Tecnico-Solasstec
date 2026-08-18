@@ -44,7 +44,8 @@
     "pg": "^8.23.0",
     "prisma": "^7.9.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "tsx": "^4.23.12"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -69,7 +70,6 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.9.1",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.23.12",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },

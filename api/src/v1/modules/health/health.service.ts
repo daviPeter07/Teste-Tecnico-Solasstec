@@ -1,4 +1,5 @@
-import { Injectable, ServiceUnavailableException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { SystemUnavailableException } from '@/common/exceptions';
 import { HealthResponseDto } from './dto/health-response.dto';
 import { HealthRepository } from './repositories/health.repository';
 
@@ -11,13 +12,10 @@ export class HealthService {
       await this.healthRepository.pingDatabase();
 
       return {
-        message: 'Banco de dados conectado.',
+        message: 'Sistema operando normalmente.',
       };
     } catch {
-      throw new ServiceUnavailableException({
-        code: 'DATABASE_UNAVAILABLE',
-        message: 'Banco de dados não conectado.',
-      });
+      throw new SystemUnavailableException();
     }
   }
 }
