@@ -13,7 +13,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/">) {
         <AppSidebar />
         <div className="flex flex-1 flex-col min-w-0">
           <AppHeader />
-          <main className="mx-auto w-full max-w-[1500px] flex-1 px-5 py-8 sm:px-8 sm:py-10 lg:px-12">
+          <main className="mx-auto w-full max-w-[1500px] flex-1 px-5 py-5 sm:px-8 sm:py-6 lg:px-12">
             {children}
           </main>
         </div>

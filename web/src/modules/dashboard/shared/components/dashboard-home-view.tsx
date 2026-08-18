@@ -1,71 +1,176 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowUpRight, CalendarDays, DoorOpen, Users } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  CalendarClock,
+  DoorOpen,
+  Users,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAppointments } from "@/modules/dashboard/agendamentos/services/appointments-service";
+import { useHolidays } from "@/modules/dashboard/feriados/services/holidays-service";
+import { useRooms } from "@/modules/dashboard/salas/services/rooms-service";
+import { useVisitors } from "@/modules/dashboard/visitantes/services/visitors-service";
+import { formatDateOnly } from "@/utils/date-format";
 import { PageHeader } from "./page-header";
 
-const areas = [
-  {
-    href: "/visitantes",
-    title: "Visitantes",
-    description: "Cadastre pessoas e identifique prioridades automaticamente.",
-    icon: Users,
-    available: true,
-  },
-  {
-    href: "/salas",
-    title: "Salas",
-    description: "Organize capacidade, responsáveis e horários de funcionamento.",
-    icon: DoorOpen,
-    available: true,
-  },
-  {
-    href: "/feriados",
-    title: "Feriados",
-    description: "Gerencie datas que afetam novas reservas.",
-    icon: CalendarDays,
-    available: false,
-  },
-] as const;
+function todayInManaus() {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Manaus",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+function daysUntil(date: string, today: string) {
+  const target = new Date(`${date}T00:00:00.000Z`).getTime();
+  const current = new Date(`${today}T00:00:00.000Z`).getTime();
+  return Math.max(0, Math.round((target - current) / 86400000));
+}
 
 export function DashboardHomeView() {
+  const visitors = useVisitors("", 1, 1);
+  const rooms = useRooms("", 1, 1);
+  const appointments = useAppointments("", 1);
+  const holidays = useHolidays("", 1, 100);
+  const today = todayInManaus();
+  const nextHoliday = holidays.data?.data.find((holiday) => holiday.active && holiday.date >= today);
+  const nextHolidayDays = nextHoliday ? daysUntil(nextHoliday.date, today) : null;
+  const isLoadingKpis = visitors.isLoading || rooms.isLoading || appointments.isLoading || holidays.isLoading;
+
+  const kpis = [
+    {
+      label: "Visitantes ativos",
+      value: visitors.data?.meta.total,
+      hint: "Pessoas que podem ser recebidas",
+      icon: Users,
+      className: "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
+    },
+    {
+      label: "Salas ativas",
+      value: rooms.data?.meta.total,
+      hint: "Ambientes disponíveis para uso",
+      icon: DoorOpen,
+      className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
+    },
+    {
+      label: "Agendamentos ativos",
+      value: appointments.data?.meta.total,
+      hint: "Horários em andamento na agenda",
+      icon: CalendarClock,
+      className: "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+    },
+    {
+      label: "Feriados ativos",
+      value: holidays.data?.meta.total,
+      hint: "Dias sem novos horários",
+      icon: CalendarDays,
+      className: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200",
+    },
+  ] as const;
+
   return (
     <div className="space-y-10">
       <PageHeader
-        eyebrow="Painel operacional"
+        eyebrow="Resumo do dia"
         title="Visão geral"
-        description="Acesse as áreas da portaria sem métricas fictícias. Os indicadores serão adicionados conforme os módulos passarem a fornecer dados reais."
+        description="Veja rapidamente como estão visitantes, salas, agendamentos e próximos feriados."
       />
 
-      <section className="grid gap-4 lg:grid-cols-3" aria-label="Áreas do sistema">
-        {areas.map((area, index) => {
-          const Icon = area.icon;
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Indicadores principais">
+        {kpis.map((kpi) => {
+          const Icon = kpi.icon;
           return (
-            <Link
-              key={area.href}
-              href={area.href}
-              className="group relative min-h-56 overflow-hidden border border-border bg-card p-6 transition-colors hover:border-orange-400 dark:hover:border-orange-700"
-            >
-              <span className="font-mono text-xs text-muted-foreground">0{index + 1}</span>
-              <div className="mt-9 flex items-start justify-between gap-4">
-                <span className="flex size-12 items-center justify-center bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300">
+            <article key={kpi.label} className="border border-border bg-card p-5">
+              <div className="flex items-start justify-between gap-4">
+                <span className={`flex size-10 items-center justify-center ${kpi.className}`}>
                   <Icon aria-hidden="true" className="size-5" />
                 </span>
-                <ArrowUpRight
-                  aria-hidden="true"
-                  className="size-5 text-muted-foreground transition-transform group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-primary"
-                />
               </div>
-              <h2 className="mt-5 text-xl font-semibold tracking-tight">{area.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                {area.description}
+              <p className="mt-6 text-sm font-medium text-muted-foreground">{kpi.label}</p>
+              <p className="mt-1 text-4xl font-semibold tracking-tight">
+                {isLoadingKpis ? "..." : (kpi.value ?? 0)}
               </p>
-              {!area.available && (
-                <span className="absolute top-5 right-5 bg-muted px-2 py-1 font-mono text-[0.58rem] tracking-wider text-muted-foreground uppercase">
-                  Em breve
-                </span>
-              )}
-            </Link>
+              <p className="mt-3 text-sm leading-5 text-muted-foreground">{kpi.hint}</p>
+            </article>
           );
         })}
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]" aria-label="Alertas operacionais">
+        <article className="relative overflow-hidden border border-amber-200 bg-amber-50 p-6 dark:border-amber-900 dark:bg-amber-950/35">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex gap-4">
+              <span className="flex size-12 shrink-0 items-center justify-center bg-amber-200 text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+                <AlertTriangle aria-hidden="true" className="size-6" />
+              </span>
+              <div>
+                <p className="font-mono text-xs tracking-wider text-amber-800 uppercase dark:text-amber-200">
+                  Próximo feriado
+                </p>
+                {holidays.isLoading ? (
+                  <div className="mt-3 h-16 w-72 animate-pulse bg-amber-200/70 dark:bg-amber-900/70" />
+                ) : nextHoliday ? (
+                  <>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 dark:text-amber-50">
+                      {nextHoliday.description}
+                    </h2>
+                    <p className="mt-2 text-sm text-amber-900/80 dark:text-amber-100/80">
+                      {formatDateOnly(nextHoliday.date, "full")} · {nextHolidayDays === 0 ? "hoje" : `em ${nextHolidayDays} dia(s)`}
+                    </p>
+                    <p className="mt-4 max-w-2xl text-sm leading-6 text-amber-900/75 dark:text-amber-100/75">
+                      Nessa data não será possível criar novos agendamentos. Ao escolher esse dia, o sistema mostra a próxima data disponível da sala.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-tight text-amber-950 dark:text-amber-50">
+                      Nenhum feriado futuro cadastrado
+                    </h2>
+                    <p className="mt-2 text-sm text-amber-900/80 dark:text-amber-100/80">
+                      Cadastre feriados para evitar agendamentos em dias sem atendimento.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+            <Button asChild variant="outline" className="rounded-none border-amber-300 bg-transparent text-amber-950 hover:bg-amber-100 dark:border-amber-800 dark:text-amber-100 dark:hover:bg-amber-900/50">
+              <Link href="/feriados">Ver feriados</Link>
+            </Button>
+          </div>
+        </article>
+
+        <article className="border border-border bg-card p-6">
+          <h2 className="text-lg font-semibold tracking-tight">Ações rápidas</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Comece pelas tarefas mais usadas no atendimento.
+          </p>
+          <div className="mt-5 grid gap-2">
+            <Button asChild className="h-11 justify-start rounded-none">
+              <Link href="/agendamentos">
+                <CalendarClock aria-hidden="true" className="mr-2 size-4" />
+                Fazer agendamento
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-11 justify-start rounded-none">
+              <Link href="/visitantes">
+                <Users aria-hidden="true" className="mr-2 size-4" />
+                Registrar visitante
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-11 justify-start rounded-none">
+              <Link href="/salas">
+                <DoorOpen aria-hidden="true" className="mr-2 size-4" />
+                Cadastrar sala
+              </Link>
+            </Button>
+          </div>
+        </article>
       </section>
     </div>
   );
