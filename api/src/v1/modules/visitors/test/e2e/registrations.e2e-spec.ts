@@ -30,8 +30,7 @@ describe('Visitor and room registrations (e2e)', () => {
   };
 
   beforeAll(async () => {
-    process.env.DATABASE_URL ??=
-      'postgresql://postgres:postgres@localhost:5432/solasstec_portaria?schema=public';
+    process.env.NODE_ENV = 'test';
     process.env.CORS_ORIGIN ??= 'http://test.local';
     process.env.BUSINESS_TIME_ZONE = 'America/Manaus';
 

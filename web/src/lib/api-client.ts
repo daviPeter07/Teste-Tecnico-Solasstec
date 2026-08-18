@@ -10,10 +10,9 @@ export class ApiClientError extends Error {
 
 export function getApiUrl(path: string): string {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  if (typeof window !== "undefined") return `/api${normalizedPath}`;
-
   const baseUrl = (
-    process.env.API_URL || "http://localhost:3333/api/v1"
+    process.env.API_URL ||
+    "http://localhost:3333/api/v1"
   ).replace(/\/$/, "");
   return `${baseUrl}${normalizedPath}`;
 }
