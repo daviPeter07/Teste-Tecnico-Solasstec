@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginatedSchema } from "@/modules/dashboard/shared/schemas/pagination-schema";
 
 export const roomAvailabilitySchema = z.object({
   dayOfWeek: z.coerce.number().int().min(0).max(6),
@@ -53,14 +54,6 @@ export const roomSchema = z.object({
   createdAt: z.string(),
 });
 
-export const roomListSchema = z.object({
-  data: z.array(roomSchema),
-  meta: z.object({
-    page: z.number(),
-    limit: z.number(),
-    total: z.number(),
-    totalPages: z.number(),
-  }),
-});
+export const roomListSchema = paginatedSchema(roomSchema);
 
 export type Room = z.infer<typeof roomSchema>;

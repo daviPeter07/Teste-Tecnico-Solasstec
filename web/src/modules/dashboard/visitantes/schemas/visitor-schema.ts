@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginatedSchema } from "@/modules/dashboard/shared/schemas/pagination-schema";
 import { isValidCpf } from "@/utils/validators";
 
 export const visitorFormSchema = z
@@ -46,14 +47,6 @@ export const visitorSchema = z.object({
   createdAt: z.string(),
 });
 
-export const visitorListSchema = z.object({
-  data: z.array(visitorSchema),
-  meta: z.object({
-    page: z.number(),
-    limit: z.number(),
-    total: z.number(),
-    totalPages: z.number(),
-  }),
-});
+export const visitorListSchema = paginatedSchema(visitorSchema);
 
 export type Visitor = z.infer<typeof visitorSchema>;

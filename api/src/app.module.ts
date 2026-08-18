@@ -5,6 +5,7 @@ import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 import { RequestLoggingInterceptor } from '@/common/interceptors/request-logging.interceptor';
 import { configuration } from '@/config/configuration';
 import { envValidationSchema } from '@/config/env.validation';
+import { AppointmentsModule } from '@/v1/modules/appointments/appointments.module';
 import { HealthModule } from '@/v1/modules/health/health.module';
 import { HolidaysModule } from '@/v1/modules/holidays/holidays.module';
 import { RoomsModule } from '@/v1/modules/rooms/rooms.module';
@@ -20,6 +21,7 @@ import { VisitorsModule } from '@/v1/modules/visitors/visitors.module';
       validationSchema: envValidationSchema,
       validationOptions: { abortEarly: false },
     }),
+    AppointmentsModule,
     HealthModule,
     HolidaysModule,
     RoomsModule,

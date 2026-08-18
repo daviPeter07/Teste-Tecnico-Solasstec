@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { FormDialogLayout } from "@/modules/dashboard/shared/components/form-dialog-layout";
+import { getDateOnlyInTimeZone } from "@/utils/date-format";
 import { normalize } from "@/utils/normalize";
 import { useCreateVisitor, useUpdateVisitor } from "../services/visitors-service";
 import {
@@ -22,22 +23,6 @@ import {
   type Visitor,
   type VisitorFormData,
 } from "../schemas/visitor-schema";
-
-const BUSINESS_TIME_ZONE = "America/Manaus";
-
-function getTodayInBusinessTimeZone() {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: BUSINESS_TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-
-  const readPart = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? "";
-
-  return `${readPart("year")}-${readPart("month")}-${readPart("day")}`;
-}
 
 export interface VisitorFormModalProps {
   open: boolean;
@@ -177,7 +162,7 @@ export function VisitorFormModal({
                     <Input
                       type="date"
                       {...field}
-                      max={getTodayInBusinessTimeZone()}
+                      max={getDateOnlyInTimeZone()}
                       className="h-11 rounded-none"
                     />
                   </FormControl>

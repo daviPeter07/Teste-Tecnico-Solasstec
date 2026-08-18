@@ -2,7 +2,7 @@
 
 # Solasstec Portaria
 
-**Sistema administrativo para controle de visitantes, salas e feriados**
+**Sistema administrativo para controle de visitantes e agendamentos de salas**
 
 [![Node.js](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-11-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
@@ -15,7 +15,7 @@
 
 ## Sobre
 
-O **Solasstec Portaria** é um sistema web administrativo desenvolvido para a Fase 2 do desafio técnico da Solasstec. A aplicação permite gerenciar visitantes, salas e feriados usados no controle de portaria e na preparação do fluxo de agendamento de salas corporativas.
+O **Solasstec Portaria** é um sistema web administrativo desenvolvido para a Fase 2 do desafio técnico da Solasstec. A aplicação permite gerenciar visitantes, salas, feriados e agendamentos usados no controle de portaria e ocupação de salas corporativas.
 
 A especificação original está em [`docs/Desafio Solasstec_.pdf`](docs/Desafio%20Solasstec_.pdf).
 
@@ -23,18 +23,21 @@ Repositório: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 
 ## Funcionalidades Implementadas
 
-- Dashboard administrativo sem autenticação.
+- Dashboard administrativo sem autenticação, com visão geral, indicadores e ações rápidas.
 - CRUD de visitantes com documento CPF, data de nascimento e deficiência.
 - Classificação automática de prioridade por idade igual ou superior a 60 anos e/ou deficiência.
 - CRUD de salas com capacidade, responsável atual e horários de funcionamento.
 - Histórico de responsáveis e disponibilidade das salas.
 - CRUD de feriados com data, descrição, tipo e inativação lógica.
-- Busca e paginação nas listagens de visitantes, salas e feriados.
+- CRUD de agendamentos com seleção de visitante, sala, data e horário de atendimento.
+- Histórico de agendamentos por sala, incluindo registros cancelados.
+- Seleção de horários de início por slots disponíveis, com horários ocupados exibidos de forma desabilitada.
+- Sugestão automática da próxima disponibilidade quando a data selecionada é feriado ou quando o agendamento é inválido.
+- Busca e paginação nas listagens de visitantes, salas, feriados e agendamentos.
+- Próximo feriado em destaque na visão geral.
 - API REST versionada com Swagger.
 - Testes unitários e e2e no backend.
 - Testes de schemas e serviços no frontend.
-
-Agendamentos ainda não foram implementados.
 
 ## Regras De Negócio Atendidas
 
@@ -44,7 +47,12 @@ Agendamentos ainda não foram implementados.
 - Visitantes, salas e feriados são inativados por soft delete.
 - Salas mantêm histórico de responsável e disponibilidade.
 - Horários de sala não podem ter períodos sobrepostos no mesmo dia.
-- Feriados cadastrados serão usados futuramente para bloquear novos agendamentos, sem afetar agendamentos já confirmados.
+- Novos agendamentos não podem ser criados em feriados ativos.
+- Novos agendamentos devem respeitar dias e horários ativos da sala.
+- Visitantes não podem ocupar duas salas no mesmo horário.
+- Salas respeitam a capacidade máxima no período agendado.
+- Datas de feriado exibem sugestão da próxima data disponível antes do envio do formulário.
+- Agendamentos inválidos por feriado, dia inativo, horário fora do expediente, conflito de visitante ou capacidade retornam sugestão automática quando houver próximo horário disponível.
 
 ## Tecnologias
 
@@ -68,7 +76,7 @@ solasstec-portaria/
 |       |-- common/         # Filtros, interceptors, DTOs e exceptions
 |       |-- config/         # Configuração da aplicação
 |       |-- database/       # PrismaService e PrismaModule
-|       `-- v1/modules/     # Health, visitors, rooms e holidays
+|       `-- v1/modules/     # Health, visitors, rooms, holidays e appointments
 |-- web/                    # Interface Next.js
 |   `-- src/
 |       |-- app/            # Rotas do App Router
@@ -91,7 +99,8 @@ api/src/v1/modules/
 |-- health/
 |-- visitors/
 |-- rooms/
-`-- holidays/
+|-- holidays/
+`-- appointments/
 ```
 
 As exceptions ficam em `api/src/common/exceptions`, agrupadas por domínio:
@@ -102,6 +111,7 @@ exceptions/
 |-- not-found.exception.ts
 |-- health/
 |-- holidays/
+|-- appointments/
 |-- rooms/
 `-- visitors/
 ```
@@ -118,10 +128,12 @@ web/src/modules/dashboard/
 |-- visitantes/   # Components, hooks, schemas e services de visitantes
 |-- salas/        # Components, hooks, schemas e services de salas
 |-- feriados/     # Components, hooks, schemas e services de feriados
-`-- agendamentos/ # Placeholder visual
+`-- agendamentos/ # Components, hooks, schemas e services de agendamentos
 ```
 
 Os arquivos em `services` concentram TanStack Query, mutations e chamadas ao backend. Os arquivos em `hooks` ficam restritos a estado de UI, como controle de modais.
+
+Componentes compartilhados centralizam padrões de listagem, busca, paginação, estados vazios e formatação de datas para evitar repetição entre módulos.
 
 O frontend chama o backend diretamente pela URL configurada em runtime; não há route handlers `/api` no Next.js para proxy interno.
 
@@ -165,6 +177,18 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | `POST` | `/api/v1/holidays` | Cadastra feriado |
 | `PATCH` | `/api/v1/holidays/:id` | Atualiza feriado |
 | `DELETE` | `/api/v1/holidays/:id` | Inativa feriado |
+
+### Agendamentos
+
+| Método | Rota | Descrição |
+| --- | --- | --- |
+| `GET` | `/api/v1/appointments` | Lista agendamentos com busca, filtros, paginação e opção `includeInactive` para histórico |
+| `GET` | `/api/v1/appointments/availability` | Lista horários disponíveis e ocupados para sala/data |
+| `GET` | `/api/v1/appointments/:id` | Busca agendamento por ID |
+| `POST` | `/api/v1/appointments` | Cadastra agendamento após validar regras de disponibilidade |
+| `PATCH` | `/api/v1/appointments/:id` | Atualiza visitante, sala, data ou horário do agendamento |
+| `PATCH` | `/api/v1/appointments/:id/status` | Atualiza status do agendamento |
+| `DELETE` | `/api/v1/appointments/:id` | Cancela agendamento preservando histórico |
 
 ## Como Executar
 
@@ -273,7 +297,7 @@ O Compose sobe PostgreSQL, API e web. A API aplica migrations antes de iniciar.
 Backend:
 
 - Unitários com Jest para services, repositories e regras de domínio.
-- E2E HTTP com Supertest para health, visitantes, salas e feriados.
+- E2E HTTP com Supertest para health, visitantes, salas, feriados e agendamentos.
 - `DATABASE_URL` não é hardcoded nos e2e mockados; em `NODE_ENV=test`, a validação de ambiente não exige essa variável.
 
 Frontend:

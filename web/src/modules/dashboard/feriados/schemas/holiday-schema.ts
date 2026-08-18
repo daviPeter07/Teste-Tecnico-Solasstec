@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { paginatedSchema } from "@/modules/dashboard/shared/schemas/pagination-schema";
+import { isValidDateOnly } from "@/utils/date-format";
 
 export const holidayTypeSchema = z.union([
   z.literal(1),
@@ -6,11 +8,6 @@ export const holidayTypeSchema = z.union([
   z.literal(3),
   z.null(),
 ]);
-
-function isValidDateOnly(value: string): boolean {
-  const date = new Date(`${value}T00:00:00.000Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
 
 export const holidayFormSchema = z.object({
   date: z
@@ -36,14 +33,6 @@ export const holidaySchema = z.object({
   createdAt: z.string(),
 });
 
-export const holidayListSchema = z.object({
-  data: z.array(holidaySchema),
-  meta: z.object({
-    page: z.number(),
-    limit: z.number(),
-    total: z.number(),
-    totalPages: z.number(),
-  }),
-});
+export const holidayListSchema = paginatedSchema(holidaySchema);
 
 export type Holiday = z.infer<typeof holidaySchema>;
