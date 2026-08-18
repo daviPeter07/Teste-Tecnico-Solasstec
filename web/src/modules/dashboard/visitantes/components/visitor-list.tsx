@@ -1,11 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Pencil, Plus, Search, Trash2, UserCheck } from "lucide-react";
-import { parseAsInteger, parseAsString, useQueryState } from "nuqs";
+import { Pencil, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -14,6 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { DashboardEmptyState } from "@/modules/dashboard/shared/components/dashboard-empty-state";
+import { DashboardListToolbar } from "@/modules/dashboard/shared/components/dashboard-list-toolbar";
+import { PaginationFooter } from "@/modules/dashboard/shared/components/pagination-footer";
+import { useDashboardListState } from "@/modules/dashboard/shared/hooks/use-dashboard-list-state";
+import { formatDateOnly } from "@/utils/date-format";
 import { normalize } from "@/utils/normalize";
 import { useVisitors } from "../services/visitors-service";
 import type { Visitor } from "../schemas/visitor-schema";
@@ -29,83 +31,45 @@ export function VisitorList({
   onCreateVisitor,
   onDeleteVisitor,
 }: VisitorListProps) {
-  const [searchParam, setSearchParam] = useQueryState(
-    "search",
-    parseAsString.withDefault("").withOptions({ shallow: true }),
-  );
-  const [pageParam, setPageParam] = useQueryState(
-    "page",
-    parseAsInteger.withDefault(1).withOptions({ shallow: true }),
-  );
-
-  const [inputState, setInputState] = useState({
-    value: searchParam,
-    source: searchParam,
-  });
-  const inputValue = inputState.source === searchParam ? inputState.value : searchParam;
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (inputValue !== searchParam) {
-        setSearchParam(inputValue ? inputValue : null);
-        setPageParam(1);
-      }
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [inputValue, searchParam, setSearchParam, setPageParam]);
+  const { searchParam, pageParam, inputValue, onSearchChange, setPageParam } =
+    useDashboardListState();
 
   const visitors = useVisitors(searchParam.trim(), pageParam);
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full max-w-md">
-          <Search
-            aria-hidden="true"
-            className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-          />
-          <Input
-            value={inputValue}
-            onChange={(event) =>
-              setInputState({ value: event.target.value, source: searchParam })
-            }
-            placeholder="Buscar por nome ou CPF"
-            aria-label="Buscar visitantes"
-            className="h-11 rounded-none border-border bg-card pl-10"
-          />
-        </div>
-        {onCreateVisitor && (
-          <Button
-            type="button"
-            onClick={onCreateVisitor}
-            className="h-11 rounded-none px-5 shrink-0"
-          >
-            <Plus aria-hidden="true" className="mr-2 size-4" />
-            Novo visitante
-          </Button>
-        )}
-      </div>
+      <DashboardListToolbar
+        inputValue={inputValue}
+        onSearchChange={onSearchChange}
+        placeholder="Buscar por nome ou CPF"
+        ariaLabel="Buscar visitantes"
+        createLabel="Novo visitante"
+        onCreate={onCreateVisitor}
+      />
 
       {visitors.isPending && (
         <div className="h-72 animate-pulse border border-border bg-muted" />
       )}
       {visitors.isError && (
-        <EmptyVisitors
+        <DashboardEmptyState
+          icon={UserCheck}
           title="Não foi possível carregar os visitantes"
           description={visitors.error.message}
-          onCreate={onCreateVisitor}
+          actionLabel="Cadastrar visitante"
+          onAction={onCreateVisitor}
         />
       )}
       {visitors.data?.data.length === 0 && (
-        <EmptyVisitors
+        <DashboardEmptyState
+          icon={UserCheck}
           title={searchParam ? "Nenhum visitante encontrado" : "Nenhum visitante cadastrado"}
           description={
             searchParam
               ? "Tente buscar por outro nome ou CPF."
               : "Cadastre o primeiro visitante para iniciar a operação."
           }
-          onCreate={onCreateVisitor}
+          actionLabel="Cadastrar visitante"
+          onAction={onCreateVisitor}
         />
       )}
       {visitors.data && visitors.data.data.length > 0 && (
@@ -144,32 +108,12 @@ export function VisitorList({
               />
             ))}
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="font-mono text-xs text-muted-foreground">
-              {visitors.data.meta.total} visitante(s) ativo(s) · página {visitors.data.meta.page} de{" "}
-              {Math.max(visitors.data.meta.totalPages, 1)}
-            </p>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-none"
-                disabled={pageParam <= 1 || visitors.isFetching}
-                onClick={() => setPageParam((current) => Math.max(current - 1, 1))}
-              >
-                Anterior
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="rounded-none"
-                disabled={pageParam >= visitors.data.meta.totalPages || visitors.isFetching}
-                onClick={() => setPageParam((current) => current + 1)}
-              >
-                Próxima
-              </Button>
-            </div>
-          </div>
+          <PaginationFooter
+            meta={visitors.data.meta}
+            summaryLabel="visitante(s) ativo(s)"
+            isFetching={visitors.isFetching}
+            onPageChange={(page) => setPageParam(page)}
+          />
         </>
       )}
     </section>
@@ -290,36 +234,38 @@ function VisitorCard({
 }
 
 function PriorityBadge({ visitor }: { visitor: Visitor }) {
-  return visitor.isPriority ? (
-    <Badge className="bg-orange-100 text-orange-800 hover:bg-orange-100 dark:bg-orange-950 dark:text-orange-200">
-      {normalize.status("Prioritário")}
-    </Badge>
-  ) : (
-    <Badge variant="secondary">{normalize.status("Regular")}</Badge>
-  );
+  const priority = getPriorityBadge(visitor.priorityType.priorityLevel);
+
+  return <Badge className={priority.className}>{priority.label}</Badge>;
 }
 
-function EmptyVisitors({
-  title,
-  description,
-  onCreate,
-}: {
-  title: string;
-  description: string;
-  onCreate?: () => void;
-}) {
-  return (
-    <div className="flex min-h-72 flex-col items-center justify-center border border-dashed border-border bg-card p-8 text-center">
-      <UserCheck aria-hidden="true" className="size-8 text-primary" />
-      <h2 className="mt-4 text-lg font-semibold">{title}</h2>
-      <p className="mt-2 max-w-md text-sm text-muted-foreground">{description}</p>
-      {onCreate && (
-        <Button type="button" onClick={onCreate} className="mt-6 rounded-none">
-          Cadastrar visitante
-        </Button>
-      )}
-    </div>
-  );
+function getPriorityBadge(priorityLevel: number) {
+  switch (priorityLevel) {
+    case 1:
+      return {
+        label: normalize.status("Idoso 60+"),
+        className:
+          "border border-sky-200 bg-sky-100 text-sky-800 hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-200",
+      };
+    case 2:
+      return {
+        label: normalize.status("PCD"),
+        className:
+          "border border-violet-200 bg-violet-100 text-violet-800 hover:bg-violet-100 dark:border-violet-800 dark:bg-violet-950 dark:text-violet-200",
+      };
+    case 3:
+      return {
+        label: normalize.status("Idoso + PCD"),
+        className:
+          "border border-rose-200 bg-rose-100 text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-200",
+      };
+    default:
+      return {
+        label: normalize.status("Regular"),
+        className:
+          "border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+      };
+  }
 }
 
 function formatDocument(visitor: Visitor) {
@@ -327,9 +273,5 @@ function formatDocument(visitor: Visitor) {
 }
 
 function formatDate(isoString: string) {
-  if (!isoString) return "";
-  const dateOnly = isoString.slice(0, 10);
-  const [year, month, day] = dateOnly.split("-");
-  if (year && month && day) return `${day}/${month}/${year}`;
-  return isoString;
+  return isoString ? formatDateOnly(isoString, "short") : "";
 }

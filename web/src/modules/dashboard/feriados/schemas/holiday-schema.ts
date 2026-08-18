@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { paginatedSchema } from "@/modules/dashboard/shared/schemas/pagination-schema";
 
 export const holidayTypeSchema = z.union([
   z.literal(1),
@@ -36,14 +37,6 @@ export const holidaySchema = z.object({
   createdAt: z.string(),
 });
 
-export const holidayListSchema = z.object({
-  data: z.array(holidaySchema),
-  meta: z.object({
-    page: z.number(),
-    limit: z.number(),
-    total: z.number(),
-    totalPages: z.number(),
-  }),
-});
+export const holidayListSchema = paginatedSchema(holidaySchema);
 
 export type Holiday = z.infer<typeof holidaySchema>;

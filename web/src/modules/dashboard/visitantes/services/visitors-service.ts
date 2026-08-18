@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getApiUrl, readApiResponse } from "@/lib/api-client";
+import { buildListParams, getApiUrl, readApiResponse } from "@/lib/api-client";
 import {
   visitorFormSchema,
   visitorListSchema,
@@ -9,13 +9,11 @@ import {
   type VisitorFormData,
 } from "../schemas/visitor-schema";
 
-export function useVisitors(search: string, page: number) {
+export function useVisitors(search: string, page: number, limit = 20) {
   return useQuery({
-    queryKey: ["visitors", { search, page }],
+    queryKey: ["visitors", { search, page, limit }],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      params.set("page", String(page));
+      const params = buildListParams({ search, page, limit });
       const response = await fetch(getApiUrl(`/visitors?${params.toString()}`));
       return visitorListSchema.parse(await readApiResponse(response));
     },
