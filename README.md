@@ -26,35 +26,43 @@ Repositório: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 - Dashboard administrativo sem autenticação, com visão geral, indicadores e ações rápidas.
 - CRUD de visitantes com documento CPF ou RG, data de nascimento e deficiência.
 - Classificação automática de prioridade por idade igual ou superior a 60 anos e/ou deficiência.
-- CRUD de salas com capacidade, responsável atual e horários de funcionamento.
+- CRUD de salas com capacidade, responsável atual e horários de funcionamento por dia da semana.
 - Histórico de responsáveis e disponibilidade das salas.
 - CRUD de feriados com data, descrição, tipo e inativação lógica.
+- Visão mensal de feriados em calendário interativo, com criação rápida por dia e lista com busca.
 - CRUD de agendamentos com seleção de visitante, sala, data e horário de atendimento.
-- Histórico de agendamentos por visitante ou sala, incluindo registros cancelados.
-- Área de inativos para consultar e excluir definitivamente registros removidos das listas principais.
-- Visão mensal de feriados em calendário, com criação rápida por dia e lista detalhada com busca.
+- Histórico completo de agendamentos por visitante ou sala, incluindo registros cancelados.
 - Seleção de horários de início por slots disponíveis, com horários ocupados exibidos de forma desabilitada.
 - Sugestão automática da próxima disponibilidade quando a data selecionada é feriado ou quando o agendamento é inválido.
+- Área de inativos para consultar e excluir definitivamente registros removidos das listas principais.
 - Busca e paginação nas listagens de visitantes, salas, feriados e agendamentos.
 - Próximo feriado em destaque na visão geral.
-- API REST versionada com Swagger.
-- Testes unitários e e2e no backend.
-- Testes de schemas e serviços no frontend.
+- API REST versionada com Swagger em `/docs`.
+- Testes unitários e e2e no backend (Jest e Supertest).
+- Testes de schemas, utilitários e serviços no frontend (Vitest).
 
 ## Regras De Negócio Atendidas
 
 - O sistema é operado por administrador e não exige autenticação.
-- Visitantes prioritários são definidos automaticamente.
-- Visitantes ativos usam CPF ou RG como documento.
+- Fuso horário de negócios configurado para `America/Manaus` (UTC-4).
+- Visitantes prioritários são definidos automaticamente:
+  - Nível 0: Sem prioridade.
+  - Nível 1: Idoso (idade igual ou superior a 60 anos).
+  - Nível 2: Pessoa com Deficiência (PCD).
+  - Nível 3: Idoso e PCD (atende a ambos os critérios).
+- Visitantes ativos usam CPF (com validação completa de formato e dígito verificador) ou RG.
 - Visitantes, salas e feriados são inativados por soft delete.
 - Agendamentos cancelados são preservados como histórico.
-- Salas mantêm histórico de responsável e disponibilidade.
+- Salas mantêm histórico de responsável e histórico de disponibilidade com períodos de vigência.
 - Horários de sala não podem ter períodos sobrepostos no mesmo dia.
 - Novos agendamentos não podem ser criados em feriados ativos.
-- Novos agendamentos devem respeitar dias e horários ativos da sala.
+- Novos agendamentos devem respeitar os dias e horários de funcionamento ativos da sala.
 - Visitantes não podem ocupar duas salas no mesmo horário.
-- Salas respeitam a capacidade máxima no período agendado.
-- Status de agendamento segue transições controladas: pendente pode ser confirmado ou cancelado; confirmado pode ser finalizado ou cancelado; cancelado e finalizado não voltam para outros estados.
+- Salas respeitam a capacidade máxima no período agendado (múltiplos agendamentos simultâneos até o limite da sala).
+- Status de agendamento segue transições controladas:
+  - `Pendente (1)` pode ser `Confirmado (2)` ou `Cancelado (3)`.
+  - `Confirmado (2)` pode ser `Finalizado (4)` ou `Cancelado (3)`.
+  - `Cancelado (3)` e `Finalizado (4)` não voltam para outros estados nem aceitam alterações.
 - Datas de feriado exibem sugestão da próxima data disponível antes do envio do formulário.
 - Agendamentos inválidos por feriado, dia inativo, horário fora do expediente, conflito de visitante ou capacidade retornam sugestão automática quando houver próximo horário disponível.
 
@@ -64,9 +72,9 @@ Repositório: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 | --- | --- |
 | Monorepo | pnpm Workspaces |
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS 4 |
-| Dados no frontend | TanStack Query, React Hook Form, Zod |
+| Dados no frontend | TanStack Query, React Hook Form, Zod, nuqs |
 | Backend | NestJS 11, TypeScript, class-validator, Swagger |
-| Persistência | PostgreSQL 17, Prisma ORM 7 |
+| Persistência | PostgreSQL 17, Prisma ORM 7 (`@prisma/adapter-pg`) |
 | Testes | Jest, Supertest, Vitest |
 | Infraestrutura | Docker e Docker Compose |
 
@@ -78,14 +86,14 @@ solasstec-portaria/
 |   |-- prisma/             # Schema, migrations e seed
 |   `-- src/
 |       |-- common/         # Filtros, interceptors, DTOs e exceptions
-|       |-- config/         # Configuração da aplicação
+|       |-- config/         # Configuração da aplicação e validação de env
 |       |-- database/       # PrismaService e PrismaModule
 |       `-- v1/modules/     # Health, visitors, rooms, holidays e appointments
 |-- web/                    # Interface Next.js
 |   `-- src/
 |       |-- app/            # Rotas do App Router
-|       |-- components/     # Componentes globais e UI
-|       |-- lib/            # Helpers compartilhados
+|       |-- components/     # Componentes globais e UI (shadcn/ui)
+|       |-- lib/            # Helpers compartilhados e api-client
 |       |-- modules/        # Módulos verticais do dashboard
 |       `-- providers/      # Providers globais
 |-- docs/                   # Especificação e resumos de PRs
@@ -120,7 +128,7 @@ exceptions/
 `-- visitors/
 ```
 
-O schema Prisma mapeia o schema PostgreSQL `desafio`. A migration incremental alinha os dados legados às regras do sistema, incluindo normalização de visitantes, disponibilidade de salas e restrições de conflito para agendamentos futuros.
+O schema Prisma mapeia o schema PostgreSQL `desafio`. As migrations alinham os dados legados às regras do sistema, incluindo normalização de visitantes, disponibilidade de salas e restrições de conflito para agendamentos futuros.
 
 ## Arquitetura Do Frontend
 
@@ -150,7 +158,7 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `GET` | `/api/v1/health` | Verifica disponibilidade da aplicação |
+| `GET` | `/api/v1/health` | Verifica disponibilidade da aplicação e conexão com o banco |
 
 ### Visitantes
 
@@ -159,9 +167,9 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | `GET` | `/api/v1/visitors` | Lista visitantes com busca e paginação |
 | `GET` | `/api/v1/visitors/:id` | Busca visitante por ID |
 | `GET` | `/api/v1/visitors/document/:document` | Busca visitante por CPF ou RG |
-| `POST` | `/api/v1/visitors` | Cadastra visitante |
+| `POST` | `/api/v1/visitors` | Cadastra visitante com cálculo de prioridade |
 | `PATCH` | `/api/v1/visitors/:id` | Atualiza visitante |
-| `DELETE` | `/api/v1/visitors/:id` | Inativa visitante |
+| `DELETE` | `/api/v1/visitors/:id` | Inativa visitante (soft delete) |
 | `DELETE` | `/api/v1/visitors/inactive` | Exclui definitivamente visitantes inativos |
 
 ### Salas
@@ -173,7 +181,7 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | `GET` | `/api/v1/rooms/:id/history` | Consulta histórico de responsável e disponibilidade |
 | `POST` | `/api/v1/rooms` | Cadastra sala |
 | `PATCH` | `/api/v1/rooms/:id` | Atualiza sala e registra histórico |
-| `DELETE` | `/api/v1/rooms/:id` | Inativa sala |
+| `DELETE` | `/api/v1/rooms/:id` | Inativa sala (soft delete) |
 | `DELETE` | `/api/v1/rooms/inactive` | Exclui definitivamente salas inativas |
 
 ### Feriados
@@ -184,7 +192,7 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | `GET` | `/api/v1/holidays/:id` | Busca feriado por ID |
 | `POST` | `/api/v1/holidays` | Cadastra feriado |
 | `PATCH` | `/api/v1/holidays/:id` | Atualiza feriado |
-| `DELETE` | `/api/v1/holidays/:id` | Inativa feriado |
+| `DELETE` | `/api/v1/holidays/:id` | Inativa feriado (soft delete) |
 | `DELETE` | `/api/v1/holidays/inactive` | Exclui definitivamente feriados inativos |
 
 ### Agendamentos
