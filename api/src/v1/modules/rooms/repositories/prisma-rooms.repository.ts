@@ -79,6 +79,13 @@ export class PrismaRoomsRepository implements RoomsRepository {
     });
   }
 
+  findByName(name: string): Promise<RoomRecord | null> {
+    return this.prisma.room.findFirst({
+      where: { name: { equals: name, mode: 'insensitive' }, active: true },
+      include: roomInclude,
+    });
+  }
+
   findHistory(id: number): Promise<RoomHistoryRecord | null> {
     return this.prisma.room.findFirst({
       where: { id, active: true },

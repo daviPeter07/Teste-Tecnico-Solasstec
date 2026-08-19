@@ -30,10 +30,12 @@ describe('RoomsService', () => {
     repository = {
       list: jest.fn(),
       findById: jest.fn(),
+      findByName: jest.fn(),
       findHistory: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       deactivate: jest.fn(),
+      deleteInactive: jest.fn(),
     };
     service = new RoomsService(repository);
   });
@@ -103,6 +105,54 @@ describe('RoomsService', () => {
         ],
       }),
     ]);
+  });
+
+  it('rejects a create with a duplicate name', async () => {
+    repository.findByName.mockResolvedValue(room);
+
+    await expect(
+      service.create({
+        name: 'Sala Horizonte',
+        capacity: 12,
+        responsibleName: 'Ana Souza',
+        availability: [{ dayOfWeek: 1, opensAt: '08:00', closesAt: '18:00' }],
+      }),
+    ).rejects.toMatchObject({ message: 'Já existe uma sala com este nome.' });
+
+    expect(repository.create.mock.calls).toHaveLength(0);
+  });
+
+  it('rejects an update that reuses another room name', async () => {
+    repository.findById.mockResolvedValue(room);
+    repository.findByName.mockResolvedValue({ ...room, id: 2 });
+
+    await expect(
+      service.update(1, {
+        name: 'Sala Aurora',
+        capacity: 12,
+        responsibleName: 'Ana Souza',
+        availability: [{ dayOfWeek: 1, opensAt: '08:00', closesAt: '18:00' }],
+      }),
+    ).rejects.toMatchObject({ message: 'Já existe uma sala com este nome.' });
+
+    expect(repository.update.mock.calls).toHaveLength(0);
+  });
+
+  it('allows an update that keeps the current room name', async () => {
+    repository.findById.mockResolvedValue(room);
+    repository.findByName.mockResolvedValue(room);
+    repository.update.mockResolvedValue(room);
+
+    await expect(
+      service.update(1, {
+        name: 'Sala Horizonte',
+        capacity: 20,
+        responsibleName: 'Ana Souza',
+        availability: [{ dayOfWeek: 1, opensAt: '08:00', closesAt: '18:00' }],
+      }),
+    ).resolves.toMatchObject({ id: 1, name: 'Sala Horizonte' });
+
+    expect(repository.update.mock.calls).toHaveLength(1);
   });
 
   it('deactivates a room on remove', async () => {

@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma } from '@generated/prisma/client';
-import { RoomNotFoundException } from '@/common/exceptions';
+import {
+  RoomNameConflictException,
+  RoomNotFoundException,
+} from '@/common/exceptions';
 import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.dto';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { ListRoomsQueryDto } from './dto/list-rooms-query.dto';
@@ -47,9 +50,12 @@ export class RoomsService {
   }
 
   async create(input: CreateRoomDto): Promise<RoomResponseDto> {
+    const name = input.name.trim();
+    await this.ensureNameIsAvailable(name);
+
     const availability = normalizeAvailability(input.availability);
     const room = await this.roomsRepository.create({
-      name: input.name.trim(),
+      name,
       capacity: input.capacity,
       responsibleName: input.responsibleName.trim(),
       availability,
@@ -61,8 +67,13 @@ export class RoomsService {
     const existing = await this.roomsRepository.findById(id);
     if (!existing) this.throwNotFound();
 
+    const name = (input.name ?? existing.name).trim();
+    if (name !== existing.name) {
+      await this.ensureNameIsAvailable(name, id);
+    }
+
     const merged = {
-      name: input.name ?? existing.name,
+      name,
       capacity: input.capacity ?? existing.capacity,
       responsibleName:
         input.responsibleName ?? existing.responsibleHistory[0]?.name ?? '',
@@ -142,6 +153,16 @@ export class RoomsService {
         active: period.active,
       })),
     };
+  }
+
+  private async ensureNameIsAvailable(
+    name: string,
+    ignoredId?: number,
+  ): Promise<void> {
+    const existing = await this.roomsRepository.findByName(name);
+    if (existing && existing.id !== ignoredId) {
+      throw new RoomNameConflictException();
+    }
   }
 
   private throwNotFound(): never {

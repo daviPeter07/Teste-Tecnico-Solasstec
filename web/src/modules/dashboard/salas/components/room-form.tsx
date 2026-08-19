@@ -17,9 +17,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { FormDialogLayout } from "@/modules/dashboard/shared/components/form-dialog-layout";
 import { cn } from "@/lib/utils";
-import { useCreateRoom, useUpdateRoom } from "../services/rooms-service";
+import { useCreateRoom, useRooms, useUpdateRoom } from "../services/rooms-service";
 import {
-  roomFormSchema,
+  createRoomFormSchema,
   type Room,
   type RoomFormData,
 } from "../schemas/room-schema";
@@ -128,8 +128,18 @@ export function RoomFormModal({
   const createRoom = useCreateRoom();
   const updateRoom = useUpdateRoom();
 
+  const activeRooms = useRooms("", 1, 100, true);
+
+  const takenNames = useMemo(() => {
+    return (
+      activeRooms.data?.data
+        .filter((room) => room.id !== roomToEdit?.id)
+        .map((room) => room.name) ?? []
+    );
+  }, [activeRooms.data, roomToEdit]);
+
   const form = useForm<RoomFormData>({
-    resolver: zodResolver(roomFormSchema),
+    resolver: zodResolver(createRoomFormSchema(takenNames)),
     defaultValues: {
       name: "",
       capacity: 1,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { roomFormSchema } from "./room-schema";
+import { createRoomFormSchema, roomFormSchema } from "./room-schema";
 
 const validRoom = {
   name: "Sala Horizonte",
@@ -24,5 +24,27 @@ describe("roomFormSchema", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe("createRoomFormSchema", () => {
+  it("rejects a name that already exists, case-insensitively", () => {
+    const result = createRoomFormSchema(["sala HORIZONTE"]).safeParse(validRoom);
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ["name"],
+      message: "Já existe uma sala com este nome.",
+    });
+  });
+
+  it("accepts a name not present in the taken names", () => {
+    const result = createRoomFormSchema(["Sala Aurora"]).safeParse(validRoom);
+
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts the same name when no taken names are provided", () => {
+    expect(createRoomFormSchema([]).safeParse(validRoom).success).toBe(true);
   });
 });

@@ -51,6 +51,7 @@ export abstract class RoomsRepository {
     input: ListRoomsInput,
   ): Promise<{ data: RoomRecord[]; total: number }>;
   abstract findById(id: number): Promise<RoomRecord | null>;
+  abstract findByName(name: string): Promise<RoomRecord | null>;
   abstract findHistory(id: number): Promise<RoomHistoryRecord | null>;
   abstract create(input: CreateRoomInput): Promise<RoomRecord>;
   abstract update(id: number, input: CreateRoomInput): Promise<RoomRecord>;

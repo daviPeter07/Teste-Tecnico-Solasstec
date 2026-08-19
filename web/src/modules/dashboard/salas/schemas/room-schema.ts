@@ -40,6 +40,22 @@ export const roomFormSchema = z
     });
   });
 
+export function createRoomFormSchema(takenNames: string[] = []) {
+  return roomFormSchema.superRefine((room, context) => {
+    const normalizedName = room.name.trim().toLowerCase();
+    const isDuplicate = takenNames.some(
+      (name) => name.trim().toLowerCase() === normalizedName,
+    );
+    if (isDuplicate) {
+      context.addIssue({
+        code: "custom",
+        path: ["name"],
+        message: "Já existe uma sala com este nome.",
+      });
+    }
+  });
+}
+
 export type RoomFormData = z.input<typeof roomFormSchema>;
 
 export const roomSchema = z.object({

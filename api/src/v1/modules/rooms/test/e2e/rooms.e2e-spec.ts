@@ -89,7 +89,7 @@ describe('Rooms (e2e)', () => {
     jest.clearAllMocks();
     prismaService.room.findMany.mockResolvedValue([room]);
     prismaService.room.count.mockResolvedValue(1);
-    prismaService.room.findFirst.mockResolvedValue(room);
+    prismaService.room.findFirst.mockResolvedValue(null);
     prismaService.room.create.mockResolvedValue(room);
     prismaService.room.update.mockResolvedValue({ ...room, active: false });
     transactionClient.room.findUnique.mockResolvedValue({
@@ -164,6 +164,7 @@ describe('Rooms (e2e)', () => {
   });
 
   it('PATCH /api/v1/rooms/:id updates a room', async () => {
+    prismaService.room.findFirst.mockResolvedValue(room);
     const response = await request(app.getHttpServer() as Server)
       .patch('/api/v1/rooms/1')
       .send({ name: 'Sala Aurora' })
@@ -181,6 +182,7 @@ describe('Rooms (e2e)', () => {
   });
 
   it('DELETE /api/v1/rooms/:id deactivates a room', async () => {
+    prismaService.room.findFirst.mockResolvedValue(room);
     await request(app.getHttpServer() as Server)
       .delete('/api/v1/rooms/1')
       .expect(204);
@@ -204,5 +206,21 @@ describe('Rooms (e2e)', () => {
         ],
       })
       .expect(400);
+  });
+
+  it('rejects a duplicate room name', async () => {
+    prismaService.room.findFirst.mockResolvedValue(room);
+
+    await request(app.getHttpServer() as Server)
+      .post('/api/v1/rooms')
+      .send({
+        name: 'Sala Horizonte',
+        capacity: 12,
+        responsibleName: 'Ana Souza',
+        availability: [{ dayOfWeek: 1, opensAt: '08:00', closesAt: '18:00' }],
+      })
+      .expect(409);
+
+    expect(prismaService.room.create).not.toHaveBeenCalled();
   });
 });
