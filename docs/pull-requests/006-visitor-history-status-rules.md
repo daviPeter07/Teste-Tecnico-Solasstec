@@ -1,8 +1,8 @@
-# Histórico por visitante e regras de status
+# Histórico por visitante, regras de status e calendário de feriados
 
 ## Contexto
 
-Este PR alinha o dashboard a pontos explícitos da especificação original do desafio. A entrega adiciona consulta de histórico completo por visitante, melhora textos de busca por CPF/RG e endurece as transições de status de agendamentos para impedir mudanças inválidas.
+Este PR alinha o dashboard a pontos explícitos da especificação original do desafio e melhora a experiência operacional da tela de feriados. A entrega adiciona consulta de histórico completo por visitante, melhora textos de busca por CPF/RG, endurece as transições de status de agendamentos e substitui a visão principal de feriados por um calendário mensal.
 
 ## Principais alterações
 
@@ -18,6 +18,7 @@ Este PR alinha o dashboard a pontos explícitos da especificação original do d
 - Textos de inativação nas listas principais foram alinhados ao fluxo de soft delete e à tela de Inativos.
 - Visão de feriados ganhou calendário mensal grande com atalhos para criar, editar e inativar datas.
 - Listagem de feriados aceita filtro por intervalo de datas para alimentar o calendário sem depender da paginação comum.
+- A antiga lista detalhada de feriados foi desativada temporariamente no componente, mantendo um comentário para restauração rápida se necessário.
 - README atualizado com CPF/RG, histórico por visitante ou sala, inativos e transições controladas de status.
 - `requests.http` atualizado com exemplos de histórico por visitante/sala e transição inválida de status.
 
@@ -48,6 +49,16 @@ Tentativas inválidas retornam `400` com o código `INVALID_APPOINTMENT_STATUS_T
 
 Quando o status passa para `Cancelado`, o agendamento também é marcado como inativo para sair da lista principal e permanecer nos históricos.
 
+### Feriados por intervalo
+
+`GET /api/v1/holidays` agora aceita filtros de data para carregar exatamente o intervalo visível no calendário:
+
+```http
+GET /api/v1/holidays?dateFrom=2026-12-01&dateTo=2026-12-31&limit=100&page=1
+```
+
+O filtro evita depender da paginação padrão da tabela para montar a visão mensal.
+
 ## Frontend
 
 ### Visitantes
@@ -70,6 +81,19 @@ Quando o status passa para `Cancelado`, o agendamento também é marcado como in
 - As descrições informam que o registro sairá da lista principal e ficará disponível em Inativos.
 - Exclusão definitiva continua restrita à tela `/inativos`.
 
+### Calendário de feriados
+
+- A tela `/feriados` passa a renderizar o calendário mensal como visão principal.
+- O cabeçalho do calendário usa seletores de mês e ano no lugar do título estático.
+- O usuário pode navegar por `Hoje`, mês anterior, próximo mês, mês e ano.
+- O botão `Novo feriado` fica acessível no cabeçalho e no painel lateral.
+- Dias vazios abrem o cadastro com a data já preenchida.
+- Dias com feriado abrem edição ao serem clicados.
+- Cards laterais focam e destacam a data correspondente no grid.
+- O painel lateral tem altura controlada e rolagem interna para evitar crescimento indefinido quando houver muitos feriados.
+- A borda dos dias com feriado sobrepõe a grade para manter o card visualmente fechado.
+- Textos longos dos feriados usam limite de linhas para manter a célula organizada sem perder identificação.
+
 ## Validações executadas
 
 - `pnpm --filter api lint`
@@ -79,6 +103,7 @@ Quando o status passa para `Cancelado`, o agendamento também é marcado como in
 - `pnpm --filter web lint`
 - `pnpm --filter web test -- --run`
 - `pnpm --filter web build`
+- `docker compose build api`
 
 ## Checklist
 
@@ -89,5 +114,7 @@ Quando o status passa para `Cancelado`, o agendamento também é marcado como in
 - [x] Agendamento finalizado não pode ser editado ou cancelado.
 - [x] Textos de busca ajustados para CPF/RG.
 - [x] Textos de soft delete ajustados.
+- [x] Calendário mensal de feriados implementado.
+- [x] Filtro por intervalo de datas implementado para feriados.
 - [x] README atualizado.
 - [x] Testes, lint e build aprovados.
