@@ -2,6 +2,7 @@ import { Transform, Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
+  IsDateString,
   IsOptional,
   IsString,
   Matches,
@@ -21,11 +22,13 @@ export class ListHolidaysQueryDto extends PaginationQueryDto {
 
   @ApiPropertyOptional({ example: '2026-08-01', format: 'date' })
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  @IsDateString({ strict: true })
   @IsOptional()
   dateFrom?: string;
 
   @ApiPropertyOptional({ example: '2026-08-31', format: 'date' })
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  @IsDateString({ strict: true })
   @IsOptional()
   dateTo?: string;
 

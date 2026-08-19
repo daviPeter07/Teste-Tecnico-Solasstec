@@ -102,6 +102,12 @@ describe('Holidays (e2e)', () => {
     });
   });
 
+  it('rejects invalid date range filters', async () => {
+    await request(app.getHttpServer() as Server)
+      .get('/api/v1/holidays?dateFrom=2026-99-01&page=1')
+      .expect(400);
+  });
+
   it('POST /api/v1/holidays creates a holiday', async () => {
     const response = await request(app.getHttpServer() as Server)
       .post('/api/v1/holidays')
