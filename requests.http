@@ -148,6 +148,9 @@ GET {{baseUrl}}/appointments?includeInactive=true&limit=15&page=1
 ### Agendamentos: busca agendamentos por visitante, CPF, RG ou sala
 GET {{baseUrl}}/appointments?search=Visitante&limit=15&page=1
 
+### Agendamentos: filtra agendamentos por status e intervalo de datas
+GET {{baseUrl}}/appointments?status=2&startsFrom=2026-08-01T00:00:00.000Z&startsTo=2026-08-31T23:59:59.999Z&limit=15&page=1
+
 ### Agendamentos: consulta historico completo por visitante
 GET {{baseUrl}}/appointments?visitorId=1&includeInactive=true&limit=15&page=1
 

@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["desafio"]
 }
 
 model Access {
@@ -23,7 +22,6 @@ model Access {
   appointment   Appointment? @relation(fields: [appointmentId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "acesso_agendamento_id_fkey")
 
   @@map("acesso")
-  @@schema("desafio")
 }
 
 model Appointment {
@@ -43,7 +41,6 @@ model Appointment {
   @@index([visitorId, startsAt, endsAt], map: "idx_agendamento_visitante_periodo")
   @@index([roomId, startsAt, endsAt], map: "idx_agendamento_sala_periodo")
   @@map("agendamento")
-  @@schema("desafio")
 }
 
 model Holiday {
@@ -56,7 +53,6 @@ model Holiday {
   createdAt   DateTime @default(now()) @map("criado_em") @db.Timestamptz(6)
 
   @@map("feriado")
-  @@schema("desafio")
 }
 
 model Room {
@@ -75,7 +71,6 @@ model Room {
   availabilityHistory RoomAvailabilityHistory[]
 
   @@map("sala")
-  @@schema("desafio")
 }
 
 model RoomResponsible {
@@ -90,7 +85,6 @@ model RoomResponsible {
 
   @@index([roomId, validFrom], map: "idx_sala_responsavel_historico")
   @@map("sala_responsavel")
-  @@schema("desafio")
 }
 
 model RoomAvailabilityHistory {
@@ -105,7 +99,6 @@ model RoomAvailabilityHistory {
 
   @@index([roomId, validFrom], map: "idx_sala_disponibilidade_historico")
   @@map("sala_disponibilidade_historico")
-  @@schema("desafio")
 }
 
 model PriorityType {
@@ -117,7 +110,6 @@ model PriorityType {
   visitors      Visitor[]
 
   @@map("tipo_prioridade")
-  @@schema("desafio")
 }
 
 model Visitor {
@@ -138,5 +130,4 @@ model Visitor {
   @@index([name], map: "idx_visitante_nome")
   @@index([active], map: "idx_visitante_ativo")
   @@map("visitante")
-  @@schema("desafio")
 }

@@ -26,8 +26,8 @@ RUN pnpm --filter web build
 FROM node:24-alpine AS runner
 
 ENV NODE_ENV=production
-ENV PORT=3001
-ENV HOSTNAME=0.0.0.0
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
 WORKDIR /app
 
@@ -42,6 +42,6 @@ COPY --from=builder --chown=nextjs:nodejs /workspace/node_modules/.pnpm/@swc+hel
 
 USER nextjs
 
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["node", "web/server.js"]

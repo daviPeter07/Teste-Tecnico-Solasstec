@@ -128,7 +128,7 @@ exceptions/
 `-- visitors/
 ```
 
-O schema Prisma mapeia o schema PostgreSQL `desafio`. As migrations alinham os dados legados às regras do sistema, incluindo normalização de visitantes, disponibilidade de salas e restrições de conflito para agendamentos futuros.
+O schema Prisma mapeia as tabelas no schema padrão PostgreSQL (`public`). As migrations alinham os dados legados às regras do sistema, incluindo normalização de visitantes, disponibilidade de salas e restrições de conflito para agendamentos futuros.
 
 ## Arquitetura Do Frontend
 
@@ -210,64 +210,85 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 
 ## Como Executar
 
-### Pré-Requisitos
+### 1. Execução com Docker (Recomendado)
 
-- Node.js 24
-- pnpm 10.26.1
-- Docker, para execução com containers
-- PostgreSQL 17, para execução local sem Docker
+Para subir toda a stack (PostgreSQL 17 + API NestJS + Frontend Next.js) com um único comando:
 
-### Instalação
-
+#### Passo 1: Clonar o repositório
 ```bash
 git clone https://github.com/daviPeter07/Teste-Tecnico-Solasstec.git
 cd Teste-Tecnico-Solasstec
-corepack enable
-pnpm install
 ```
 
-Para execução local, crie os arquivos de ambiente das aplicações a partir dos exemplos existentes em `api/.env.example` e `web/.env.example`.
+#### Passo 2: Copiar as variáveis de ambiente
+Copie os arquivos `.env.example` para criar os `.env` da API e do Frontend:
 
-Com o banco disponível, prepare o Prisma:
-
+**Linux / macOS / Git Bash:**
 ```bash
+cp api/.env.example api/.env
+cp web/.env.example web/.env
+```
+
+**Windows (PowerShell):**
+```powershell
+Copy-Item api/.env.example api/.env
+Copy-Item web/.env.example web/.env
+```
+
+#### Passo 3: Iniciar a stack
+```bash
+docker compose up -d --build
+```
+
+O Docker Compose inicializa o banco PostgreSQL, executa as migrations e seeds do Prisma automaticamente e inicia a API e o Frontend.
+
+---
+
+### 2. Execução Local (Sem Docker)
+
+#### Pré-Requisitos
+- Node.js 24
+- pnpm 10.26.1
+- PostgreSQL 17 rodando localmente
+
+#### Instalação e Execução
+```bash
+corepack enable
+pnpm install
+
+# Copiar arquivos de ambiente
+cp api/.env.example api/.env
+cp web/.env.example web/.env
+
+# Preparar banco com Prisma
 pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
-```
 
-Inicie API e web em desenvolvimento:
-
-```bash
+# Iniciar aplicações em desenvolvimento
 pnpm dev
 ```
 
-Serviços principais:
+---
+
+### Serviços Principais
 
 | Serviço | Endereço |
 | --- | --- |
-| Frontend | <http://localhost:3001> |
+| Frontend | <http://localhost:3000> |
 | API | <http://localhost:3333/api/v1> |
 | Swagger | <http://localhost:3333/docs> |
 | Health | <http://localhost:3333/api/v1/health> |
 
-## Docker
+---
 
-Para subir a stack completa:
-
-```bash
-pnpm docker:up
-```
-
-Comandos úteis:
+### Comandos Úteis do Docker
 
 ```bash
-pnpm docker:logs
-pnpm docker:down
-docker compose down --volumes
+docker compose logs -f         # Acompanha logs dos containers
+docker compose down            # Encerra os containers
+docker compose down --volumes  # Encerra e remove volumes do banco
 ```
-
-O Compose sobe PostgreSQL, API e web. A API aplica migrations antes de iniciar.
 
 ## Scripts
 

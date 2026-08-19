@@ -48,4 +48,4 @@ USER node
 
 EXPOSE 3333
 
-CMD ["sh", "-c", "pnpm --filter api prisma:migrate:deploy && node api/dist/src/main.js"]
+CMD ["sh", "-c", "pnpm --filter api prisma:migrate:deploy && pnpm --filter api prisma:seed && node api/dist/src/main.js"]
