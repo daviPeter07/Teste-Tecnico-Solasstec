@@ -1,7 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { buildListParams, getApiUrl, readApiResponse } from "@/lib/api-client";
+import { notifyError } from "@/lib/notify";
 import {
   visitorFormSchema,
   visitorListSchema,
@@ -32,7 +34,11 @@ export function useDeleteInactiveVisitors() {
       });
       await readApiResponse(response);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["visitors"] }),
+    onSuccess: () => {
+      toast.success("Visitantes inativos excluídos com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -52,7 +58,11 @@ export function useCreateVisitor() {
       });
       return visitorSchema.parse(await readApiResponse(response));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["visitors"] }),
+    onSuccess: () => {
+      toast.success("Visitante cadastrado com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -72,7 +82,11 @@ export function useUpdateVisitor() {
       });
       return visitorSchema.parse(await readApiResponse(response));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["visitors"] }),
+    onSuccess: () => {
+      toast.success("Visitante atualizado com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -86,6 +100,10 @@ export function useDeleteVisitor() {
       });
       await readApiResponse(response);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["visitors"] }),
+    onSuccess: () => {
+      toast.success("Visitante inativado com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["visitors"] });
+    },
+    onError: notifyError,
   });
 }

@@ -1,7 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { buildListParams, getApiUrl, readApiResponse } from "@/lib/api-client";
+import { notifyError } from "@/lib/notify";
 import {
   holidayFormSchema,
   holidayListSchema,
@@ -43,7 +45,11 @@ export function useDeleteInactiveHolidays() {
       });
       await readApiResponse(response);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["holidays"] }),
+    onSuccess: () => {
+      toast.success("Feriados inativos excluídos com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["holidays"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -60,7 +66,11 @@ export function useCreateHoliday() {
       });
       return holidaySchema.parse(await readApiResponse(response));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["holidays"] }),
+    onSuccess: () => {
+      toast.success("Feriado cadastrado com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["holidays"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -77,7 +87,11 @@ export function useUpdateHoliday() {
       });
       return holidaySchema.parse(await readApiResponse(response));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["holidays"] }),
+    onSuccess: () => {
+      toast.success("Feriado atualizado com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["holidays"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -91,6 +105,10 @@ export function useDeleteHoliday() {
       });
       await readApiResponse(response);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["holidays"] }),
+    onSuccess: () => {
+      toast.success("Feriado inativado com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["holidays"] });
+    },
+    onError: notifyError,
   });
 }

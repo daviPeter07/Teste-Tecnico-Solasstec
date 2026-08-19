@@ -1,7 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { buildListParams, getApiUrl, readApiResponse } from "@/lib/api-client";
+import { notifyError } from "@/lib/notify";
 import {
   roomFormSchema,
   roomListSchema,
@@ -32,7 +34,11 @@ export function useDeleteInactiveRooms() {
       });
       await readApiResponse(response);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["rooms"] }),
+    onSuccess: () => {
+      toast.success("Salas inativas excluídas com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -49,7 +55,11 @@ export function useCreateRoom() {
       });
       return roomSchema.parse(await readApiResponse(response));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["rooms"] }),
+    onSuccess: () => {
+      toast.success("Sala cadastrada com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -66,7 +76,11 @@ export function useUpdateRoom() {
       });
       return roomSchema.parse(await readApiResponse(response));
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["rooms"] }),
+    onSuccess: () => {
+      toast.success("Sala atualizada com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: notifyError,
   });
 }
 
@@ -80,6 +94,10 @@ export function useDeleteRoom() {
       });
       await readApiResponse(response);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["rooms"] }),
+    onSuccess: () => {
+      toast.success("Sala inativada com sucesso.");
+      queryClient.invalidateQueries({ queryKey: ["rooms"] });
+    },
+    onError: notifyError,
   });
 }

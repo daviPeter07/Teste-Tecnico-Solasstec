@@ -1,7 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { buildListParams, getApiUrl, readApiResponse } from "@/lib/api-client";
+import { notifyError } from "@/lib/notify";
 import {
   appointmentFormSchema,
   appointmentListSchema,
@@ -107,10 +109,12 @@ export function useCreateAppointment() {
       return appointmentSchema.parse(await readApiResponse(response));
     },
     onSuccess: () => {
+      toast.success("Agendamento criado com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
       queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
+    onError: notifyError,
   });
 }
 
@@ -128,10 +132,12 @@ export function useUpdateAppointment() {
       return appointmentSchema.parse(await readApiResponse(response));
     },
     onSuccess: () => {
+      toast.success("Agendamento atualizado com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
       queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
+    onError: notifyError,
   });
 }
 
@@ -146,10 +152,12 @@ export function useDeleteAppointment() {
       await readApiResponse(response);
     },
     onSuccess: () => {
+      toast.success("Agendamento inativado com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
       queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
+    onError: notifyError,
   });
 }
 
@@ -166,10 +174,12 @@ export function useUpdateAppointmentStatus() {
       return appointmentSchema.parse(await readApiResponse(response));
     },
     onSuccess: () => {
+      toast.success("Status do agendamento atualizado com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
       queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
+    onError: notifyError,
   });
 }
 
@@ -186,9 +196,11 @@ export function useDeleteInactiveAppointments() {
       await readApiResponse(response);
     },
     onSuccess: () => {
+      toast.success("Agendamentos inativos excluídos com sucesso.");
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
       queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
+    onError: notifyError,
   });
 }
