@@ -63,9 +63,6 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="font-mono text-[0.62rem] tracking-[0.18em] text-muted-foreground uppercase group-data-[collapsible=icon]:hidden">
-            Operação
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
