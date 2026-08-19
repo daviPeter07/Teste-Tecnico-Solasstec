@@ -16,6 +16,8 @@ Este PR alinha o dashboard a pontos explícitos da especificação original do d
 - Agendamentos finalizados não podem ser editados ou cancelados.
 - Ações inválidas deixam de aparecer para agendamentos finalizados no frontend.
 - Textos de inativação nas listas principais foram alinhados ao fluxo de soft delete e à tela de Inativos.
+- Visão de feriados ganhou calendário mensal grande com atalhos para criar, editar e inativar datas.
+- Listagem de feriados aceita filtro por intervalo de datas para alimentar o calendário sem depender da paginação comum.
 - README atualizado com CPF/RG, histórico por visitante ou sala, inativos e transições controladas de status.
 - `requests.http` atualizado com exemplos de histórico por visitante/sala e transição inválida de status.
 

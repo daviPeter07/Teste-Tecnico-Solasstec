@@ -26,8 +26,26 @@ describe('HolidaysService', () => {
       create: jest.fn(),
       update: jest.fn(),
       deactivate: jest.fn(),
+      deleteInactive: jest.fn(),
     };
     service = new HolidaysService(repository);
+  });
+
+  it('passes date range filters to the repository', async () => {
+    repository.list.mockResolvedValue({ data: [holiday], total: 1 });
+
+    await service.list({
+      page: 1,
+      limit: 15,
+      active: true,
+      dateFrom: '2026-12-01',
+      dateTo: '2026-12-31',
+    });
+
+    expect(repository.list.mock.calls[0]?.[0]).toMatchObject({
+      dateFrom: '2026-12-01',
+      dateTo: '2026-12-31',
+    });
   });
 
   it('creates a holiday with a UTC-safe date', async () => {

@@ -110,6 +110,9 @@ GET {{baseUrl}}/holidays
 ### Feriados: busca feriado por descricao ou data
 GET {{baseUrl}}/holidays?search=Natal&limit=15&page=1
 
+### Feriados: lista feriados ativos por intervalo mensal
+GET {{baseUrl}}/holidays?dateFrom=2026-12-01&dateTo=2026-12-31&limit=100&page=1
+
 ### Feriados: cria um feriado para testar POST
 # Se essa data ja existir no seu banco, altere @holidayDate para uma data livre.
 # @name createHoliday

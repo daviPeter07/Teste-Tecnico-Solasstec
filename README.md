@@ -32,6 +32,7 @@ Repositório: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 - CRUD de agendamentos com seleção de visitante, sala, data e horário de atendimento.
 - Histórico de agendamentos por visitante ou sala, incluindo registros cancelados.
 - Área de inativos para consultar e excluir definitivamente registros removidos das listas principais.
+- Visão mensal de feriados em calendário, com criação rápida por dia e lista detalhada com busca.
 - Seleção de horários de início por slots disponíveis, com horários ocupados exibidos de forma desabilitada.
 - Sugestão automática da próxima disponibilidade quando a data selecionada é feriado ou quando o agendamento é inválido.
 - Busca e paginação nas listagens de visitantes, salas, feriados e agendamentos.

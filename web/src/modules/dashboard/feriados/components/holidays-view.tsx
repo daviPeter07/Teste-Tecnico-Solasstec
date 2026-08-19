@@ -12,6 +12,7 @@ export function HolidaysView() {
     open,
     setOpen,
     selectedHoliday,
+    initialDate,
     openCreate,
     openEdit,
     deleteOpen,
@@ -38,6 +39,7 @@ export function HolidaysView() {
           open={open}
           onOpenChange={setOpen}
           holidayToEdit={selectedHoliday}
+          initialDate={initialDate}
         />
       )}
       {deleteOpen && (

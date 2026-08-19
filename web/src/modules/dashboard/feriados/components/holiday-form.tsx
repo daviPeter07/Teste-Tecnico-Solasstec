@@ -33,6 +33,7 @@ export interface HolidayFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   holidayToEdit?: Holiday | null;
+  initialDate?: string | null;
 }
 
 const HOLIDAY_SAVE_ERROR_MESSAGE =
@@ -42,6 +43,7 @@ export function HolidayFormModal({
   open,
   onOpenChange,
   holidayToEdit,
+  initialDate,
 }: HolidayFormModalProps) {
   const isEditing = Boolean(holidayToEdit);
   const createHoliday = useCreateHoliday();
@@ -59,11 +61,11 @@ export function HolidayFormModal({
   useEffect(() => {
     if (!open) return;
     form.reset({
-      date: holidayToEdit?.date ?? "",
+      date: holidayToEdit?.date ?? initialDate ?? "",
       description: holidayToEdit?.description ?? "",
       type: holidayToEdit?.type ?? null,
     });
-  }, [form, holidayToEdit, open]);
+  }, [form, holidayToEdit, initialDate, open]);
 
   async function onSubmit(data: HolidayFormData) {
     try {
