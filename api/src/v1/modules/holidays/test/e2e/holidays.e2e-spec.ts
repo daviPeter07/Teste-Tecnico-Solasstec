@@ -86,6 +86,22 @@ describe('Holidays (e2e)', () => {
     });
   });
 
+  it('GET /api/v1/holidays filters by date range', async () => {
+    await request(app.getHttpServer() as Server)
+      .get('/api/v1/holidays?dateFrom=2026-12-01&dateTo=2026-12-31&page=1')
+      .expect(200);
+
+    const findManyCalls = prismaService.holiday.findMany.mock.calls as Array<
+      [{ where?: { date?: { gte?: Date; lte?: Date } } }]
+    >;
+    const findManyArgs = findManyCalls.at(-1)?.[0];
+
+    expect(findManyArgs?.where?.date).toEqual({
+      gte: new Date('2026-12-01T00:00:00.000Z'),
+      lte: new Date('2026-12-31T00:00:00.000Z'),
+    });
+  });
+
   it('POST /api/v1/holidays creates a holiday', async () => {
     const response = await request(app.getHttpServer() as Server)
       .post('/api/v1/holidays')

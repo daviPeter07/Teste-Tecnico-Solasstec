@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2, UserCheck } from "lucide-react";
+import { CalendarClock, Pencil, Trash2, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -26,12 +26,14 @@ export interface VisitorListProps {
   onEditVisitor?: (visitor: Visitor) => void;
   onCreateVisitor?: () => void;
   onDeleteVisitor?: (visitor: Visitor) => void;
+  onShowHistory?: (visitor: Visitor) => void;
 }
 
 export function VisitorList({
   onEditVisitor,
   onCreateVisitor,
   onDeleteVisitor,
+  onShowHistory,
 }: VisitorListProps) {
   const { searchParam, pageParam, inputValue, onSearchChange, setPageParam } =
     useDashboardListState();
@@ -43,7 +45,7 @@ export function VisitorList({
       <DashboardListToolbar
         inputValue={inputValue}
         onSearchChange={onSearchChange}
-        placeholder="Buscar por nome ou documento"
+        placeholder="Buscar por nome, CPF ou RG"
         ariaLabel="Buscar visitantes"
         createLabel="Novo visitante"
         onCreate={onCreateVisitor}
@@ -67,7 +69,7 @@ export function VisitorList({
           title={searchParam ? "Nenhum visitante encontrado" : "Nenhum visitante cadastrado"}
           description={
             searchParam
-              ? "Tente buscar por outro nome ou documento."
+              ? "Tente buscar por outro nome, CPF ou RG."
               : "Cadastre o primeiro visitante para iniciar a operação."
           }
           actionLabel="Cadastrar visitante"
@@ -95,6 +97,7 @@ export function VisitorList({
                     visitor={visitor}
                     onEdit={onEditVisitor}
                     onDelete={onDeleteVisitor}
+                    onShowHistory={onShowHistory}
                   />
                 ))}
               </TableBody>
@@ -107,6 +110,7 @@ export function VisitorList({
                 visitor={visitor}
                 onEdit={onEditVisitor}
                 onDelete={onDeleteVisitor}
+                onShowHistory={onShowHistory}
               />
             ))}
           </div>
@@ -126,10 +130,12 @@ function VisitorRow({
   visitor,
   onEdit,
   onDelete,
+  onShowHistory,
 }: {
   visitor: Visitor;
   onEdit?: (visitor: Visitor) => void;
   onDelete?: (visitor: Visitor) => void;
+  onShowHistory?: (visitor: Visitor) => void;
 }) {
   return (
     <TableRow>
@@ -147,12 +153,17 @@ function VisitorRow({
       <TableCell className="text-right">
         <div className="flex items-center justify-end gap-1">
           <ActionIconButton
+            label="Histórico"
+            icon={<CalendarClock aria-hidden="true" className="size-4" />}
+            onClick={() => onShowHistory?.(visitor)}
+          />
+          <ActionIconButton
             label="Editar"
             icon={<Pencil aria-hidden="true" className="size-4" />}
             onClick={() => onEdit?.(visitor)}
           />
           <ActionIconButton
-            label="Excluir"
+            label="Inativar"
             icon={<Trash2 aria-hidden="true" className="size-4" />}
             className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => onDelete?.(visitor)}
@@ -167,10 +178,12 @@ function VisitorCard({
   visitor,
   onEdit,
   onDelete,
+  onShowHistory,
 }: {
   visitor: Visitor;
   onEdit?: (visitor: Visitor) => void;
   onDelete?: (visitor: Visitor) => void;
+  onShowHistory?: (visitor: Visitor) => void;
 }) {
   return (
     <article className="border border-border bg-card p-5">
@@ -187,12 +200,17 @@ function VisitorCard({
         <p>Nascimento: {formatDate(visitor.birthDate)}</p>
         <div className="flex items-center gap-1">
           <ActionIconButton
+            label="Histórico"
+            icon={<CalendarClock aria-hidden="true" className="size-4" />}
+            onClick={() => onShowHistory?.(visitor)}
+          />
+          <ActionIconButton
             label="Editar"
             icon={<Pencil aria-hidden="true" className="size-4" />}
             onClick={() => onEdit?.(visitor)}
           />
           <ActionIconButton
-            label="Excluir"
+            label="Inativar"
             icon={<Trash2 aria-hidden="true" className="size-4" />}
             className="rounded-none text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={() => onDelete?.(visitor)}

@@ -24,13 +24,15 @@ Repositório: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 ## Funcionalidades Implementadas
 
 - Dashboard administrativo sem autenticação, com visão geral, indicadores e ações rápidas.
-- CRUD de visitantes com documento CPF, data de nascimento e deficiência.
+- CRUD de visitantes com documento CPF ou RG, data de nascimento e deficiência.
 - Classificação automática de prioridade por idade igual ou superior a 60 anos e/ou deficiência.
 - CRUD de salas com capacidade, responsável atual e horários de funcionamento.
 - Histórico de responsáveis e disponibilidade das salas.
 - CRUD de feriados com data, descrição, tipo e inativação lógica.
 - CRUD de agendamentos com seleção de visitante, sala, data e horário de atendimento.
-- Histórico de agendamentos por sala, incluindo registros cancelados.
+- Histórico de agendamentos por visitante ou sala, incluindo registros cancelados.
+- Área de inativos para consultar e excluir definitivamente registros removidos das listas principais.
+- Visão mensal de feriados em calendário, com criação rápida por dia e lista detalhada com busca.
 - Seleção de horários de início por slots disponíveis, com horários ocupados exibidos de forma desabilitada.
 - Sugestão automática da próxima disponibilidade quando a data selecionada é feriado ou quando o agendamento é inválido.
 - Busca e paginação nas listagens de visitantes, salas, feriados e agendamentos.
@@ -43,14 +45,16 @@ Repositório: <https://github.com/daviPeter07/Teste-Tecnico-Solasstec>
 
 - O sistema é operado por administrador e não exige autenticação.
 - Visitantes prioritários são definidos automaticamente.
-- Visitantes ativos usam CPF como documento principal no fluxo atual.
+- Visitantes ativos usam CPF ou RG como documento.
 - Visitantes, salas e feriados são inativados por soft delete.
+- Agendamentos cancelados são preservados como histórico.
 - Salas mantêm histórico de responsável e disponibilidade.
 - Horários de sala não podem ter períodos sobrepostos no mesmo dia.
 - Novos agendamentos não podem ser criados em feriados ativos.
 - Novos agendamentos devem respeitar dias e horários ativos da sala.
 - Visitantes não podem ocupar duas salas no mesmo horário.
 - Salas respeitam a capacidade máxima no período agendado.
+- Status de agendamento segue transições controladas: pendente pode ser confirmado ou cancelado; confirmado pode ser finalizado ou cancelado; cancelado e finalizado não voltam para outros estados.
 - Datas de feriado exibem sugestão da próxima data disponível antes do envio do formulário.
 - Agendamentos inválidos por feriado, dia inativo, horário fora do expediente, conflito de visitante ou capacidade retornam sugestão automática quando houver próximo horário disponível.
 
@@ -128,7 +132,8 @@ web/src/modules/dashboard/
 |-- visitantes/   # Components, hooks, schemas e services de visitantes
 |-- salas/        # Components, hooks, schemas e services de salas
 |-- feriados/     # Components, hooks, schemas e services de feriados
-`-- agendamentos/ # Components, hooks, schemas e services de agendamentos
+|-- agendamentos/ # Components, hooks, schemas e services de agendamentos
+`-- inativos/     # Consulta e exclusão definitiva de registros inativos
 ```
 
 Os arquivos em `services` concentram TanStack Query, mutations e chamadas ao backend. Os arquivos em `hooks` ficam restritos a estado de UI, como controle de modais.
@@ -153,9 +158,11 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | --- | --- | --- |
 | `GET` | `/api/v1/visitors` | Lista visitantes com busca e paginação |
 | `GET` | `/api/v1/visitors/:id` | Busca visitante por ID |
+| `GET` | `/api/v1/visitors/document/:document` | Busca visitante por CPF ou RG |
 | `POST` | `/api/v1/visitors` | Cadastra visitante |
 | `PATCH` | `/api/v1/visitors/:id` | Atualiza visitante |
 | `DELETE` | `/api/v1/visitors/:id` | Inativa visitante |
+| `DELETE` | `/api/v1/visitors/inactive` | Exclui definitivamente visitantes inativos |
 
 ### Salas
 
@@ -167,6 +174,7 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | `POST` | `/api/v1/rooms` | Cadastra sala |
 | `PATCH` | `/api/v1/rooms/:id` | Atualiza sala e registra histórico |
 | `DELETE` | `/api/v1/rooms/:id` | Inativa sala |
+| `DELETE` | `/api/v1/rooms/inactive` | Exclui definitivamente salas inativas |
 
 ### Feriados
 
@@ -177,6 +185,7 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | `POST` | `/api/v1/holidays` | Cadastra feriado |
 | `PATCH` | `/api/v1/holidays/:id` | Atualiza feriado |
 | `DELETE` | `/api/v1/holidays/:id` | Inativa feriado |
+| `DELETE` | `/api/v1/holidays/inactive` | Exclui definitivamente feriados inativos |
 
 ### Agendamentos
 
@@ -189,6 +198,7 @@ A API usa o prefixo `/api/v1`. A documentação Swagger fica em `/docs` quando h
 | `PATCH` | `/api/v1/appointments/:id` | Atualiza visitante, sala, data ou horário do agendamento |
 | `PATCH` | `/api/v1/appointments/:id/status` | Atualiza status do agendamento |
 | `DELETE` | `/api/v1/appointments/:id` | Cancela agendamento preservando histórico |
+| `DELETE` | `/api/v1/appointments/inactive` | Exclui definitivamente agendamentos inativos |
 
 ## Como Executar
 

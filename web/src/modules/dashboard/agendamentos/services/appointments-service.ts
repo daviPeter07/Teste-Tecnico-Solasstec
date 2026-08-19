@@ -57,6 +57,23 @@ export function useRoomAppointmentHistory(roomId: number, page: number) {
   });
 }
 
+export function useVisitorAppointmentHistory(visitorId: number, page: number) {
+  return useQuery({
+    queryKey: ["visitor-appointment-history", { visitorId, page }],
+    enabled: visitorId > 0,
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        visitorId: String(visitorId),
+        page: String(page),
+        limit: "15",
+        includeInactive: "true",
+      });
+      const response = await fetch(getApiUrl(`/appointments?${params.toString()}`));
+      return appointmentListSchema.parse(await readApiResponse(response));
+    },
+  });
+}
+
 export function useAppointmentSlots(
   roomId: number,
   date: string,
@@ -92,6 +109,7 @@ export function useCreateAppointment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
+      queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
   });
 }
@@ -112,6 +130,7 @@ export function useUpdateAppointment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
+      queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
   });
 }
@@ -129,6 +148,7 @@ export function useDeleteAppointment() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
+      queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
   });
 }
@@ -148,6 +168,7 @@ export function useUpdateAppointmentStatus() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
+      queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
   });
 }
@@ -167,6 +188,7 @@ export function useDeleteInactiveAppointments() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       queryClient.invalidateQueries({ queryKey: ["room-appointment-history"] });
+      queryClient.invalidateQueries({ queryKey: ["visitor-appointment-history"] });
     },
   });
 }

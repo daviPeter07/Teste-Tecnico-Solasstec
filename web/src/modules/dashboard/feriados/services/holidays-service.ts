@@ -9,11 +9,22 @@ import {
   type HolidayFormData,
 } from "../schemas/holiday-schema";
 
-export function useHolidays(search: string, page: number, limit = 15, active = true) {
+export interface HolidayListOptions {
+  dateFrom?: string;
+  dateTo?: string;
+}
+
+export function useHolidays(
+  search: string,
+  page: number,
+  limit = 15,
+  active = true,
+  options: HolidayListOptions = {},
+) {
   return useQuery({
-    queryKey: ["holidays", { search, page, limit, active }],
+    queryKey: ["holidays", { search, page, limit, active, ...options }],
     queryFn: async () => {
-      const params = buildListParams({ search, page, limit, active });
+      const params = buildListParams({ search, page, limit, active, ...options });
       const response = await fetch(getApiUrl(`/holidays?${params.toString()}`));
       return holidayListSchema.parse(await readApiResponse(response));
     },

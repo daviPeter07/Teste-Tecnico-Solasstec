@@ -13,6 +13,11 @@ function parseSearchDate(search?: string): Date | undefined {
   return date.toISOString().slice(0, 10) === search ? date : undefined;
 }
 
+function parseDateFilter(value?: string): Date | undefined {
+  if (!value) return undefined;
+  return new Date(`${value}T00:00:00.000Z`);
+}
+
 @Injectable()
 export class PrismaHolidaysRepository implements HolidaysRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -21,8 +26,16 @@ export class PrismaHolidaysRepository implements HolidaysRepository {
     input: ListHolidaysInput,
   ): Promise<{ data: HolidayRecord[]; total: number }> {
     const searchDate = parseSearchDate(input.search);
+    const dateFrom = parseDateFilter(input.dateFrom);
+    const dateTo = parseDateFilter(input.dateTo);
     const where = {
       active: input.active,
+      ...((dateFrom || dateTo) && {
+        date: {
+          ...(dateFrom ? { gte: dateFrom } : {}),
+          ...(dateTo ? { lte: dateTo } : {}),
+        },
+      }),
       ...(input.search
         ? {
             OR: [

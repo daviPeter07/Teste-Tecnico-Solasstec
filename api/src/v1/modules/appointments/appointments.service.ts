@@ -4,6 +4,7 @@ import { DeleteInactiveRecordsDto } from '@/common/dto/delete-inactive-records.d
 import {
   AppointmentNotFoundException,
   AppointmentUnavailableException,
+  InvalidAppointmentStatusTransitionException,
   InvalidAppointmentPeriodException,
   RoomNotFoundException,
   VisitorNotFoundException,
@@ -24,18 +25,35 @@ import {
   AppointmentsRepository,
 } from './repositories/appointments.repository';
 
-const STATUS_LABELS: Record<number, string> = {
-  1: 'Pendente',
-  2: 'Confirmado',
-  3: 'Cancelado',
-  4: 'Finalizado',
-};
-
 const BUSINESS_OFFSET = '-04:00';
 const DEFAULT_APPOINTMENT_DURATION_MINUTES = 60;
 const MAX_SUGGESTION_DAYS = 60;
 const SUGGESTION_STEP_MINUTES = 15;
 const SLOT_STEP_MINUTES = DEFAULT_APPOINTMENT_DURATION_MINUTES;
+const APPOINTMENT_STATUS = {
+  PENDING: 1,
+  CONFIRMED: 2,
+  CANCELED: 3,
+  FINISHED: 4,
+} as const;
+const STATUS_LABELS: Record<number, string> = {
+  [APPOINTMENT_STATUS.PENDING]: 'Pendente',
+  [APPOINTMENT_STATUS.CONFIRMED]: 'Confirmado',
+  [APPOINTMENT_STATUS.CANCELED]: 'Cancelado',
+  [APPOINTMENT_STATUS.FINISHED]: 'Finalizado',
+};
+const ALLOWED_STATUS_TRANSITIONS: Record<number, number[]> = {
+  [APPOINTMENT_STATUS.PENDING]: [
+    APPOINTMENT_STATUS.CONFIRMED,
+    APPOINTMENT_STATUS.CANCELED,
+  ],
+  [APPOINTMENT_STATUS.CONFIRMED]: [
+    APPOINTMENT_STATUS.CANCELED,
+    APPOINTMENT_STATUS.FINISHED,
+  ],
+  [APPOINTMENT_STATUS.CANCELED]: [],
+  [APPOINTMENT_STATUS.FINISHED]: [],
+};
 
 interface AppointmentPeriod {
   date: string;
@@ -195,6 +213,7 @@ export class AppointmentsService {
       async () => {
         const existing = await this.appointmentsRepository.findById(id);
         if (!existing) this.throwNotFound();
+        this.ensureAppointmentCanBeEdited(existing);
 
         const current = this.toBusinessPeriod(
           existing.startsAt,
@@ -243,7 +262,9 @@ export class AppointmentsService {
       async () => {
         const existing = await this.appointmentsRepository.findById(id);
         if (!existing) this.throwNotFound();
-        if (input.status === 1 || input.status === 2) {
+        this.ensureStatusTransition(existing.status, input.status);
+
+        if (input.status === APPOINTMENT_STATUS.CONFIRMED) {
           return this.appointmentsRepository.runWithAppointmentLocks(
             {
               roomId: existing.roomId,
@@ -273,6 +294,7 @@ export class AppointmentsService {
                 await this.appointmentsRepository.updateStatus(
                   id,
                   input.status,
+                  true,
                 );
               return this.toResponse(appointment);
             },
@@ -282,6 +304,7 @@ export class AppointmentsService {
         const appointment = await this.appointmentsRepository.updateStatus(
           id,
           input.status,
+          input.status === APPOINTMENT_STATUS.CANCELED ? false : true,
         );
         return this.toResponse(appointment);
       },
@@ -289,9 +312,7 @@ export class AppointmentsService {
   }
 
   async remove(id: number): Promise<void> {
-    const existing = await this.appointmentsRepository.findById(id);
-    if (!existing) this.throwNotFound();
-    await this.appointmentsRepository.deactivate(id);
+    await this.updateStatus(id, { status: APPOINTMENT_STATUS.CANCELED });
   }
 
   async deleteInactive(input?: DeleteInactiveRecordsDto): Promise<void> {
@@ -690,5 +711,24 @@ export class AppointmentsService {
 
   private throwNotFound(): never {
     throw new AppointmentNotFoundException();
+  }
+
+  private ensureAppointmentCanBeEdited(appointment: AppointmentRecord): void {
+    if (
+      appointment.status === APPOINTMENT_STATUS.CANCELED ||
+      appointment.status === APPOINTMENT_STATUS.FINISHED
+    ) {
+      throw new InvalidAppointmentStatusTransitionException();
+    }
+  }
+
+  private ensureStatusTransition(
+    currentStatus: number,
+    nextStatus: number,
+  ): void {
+    const allowedTargets = ALLOWED_STATUS_TRANSITIONS[currentStatus] ?? [];
+    if (!allowedTargets.includes(nextStatus)) {
+      throw new InvalidAppointmentStatusTransitionException();
+    }
   }
 }

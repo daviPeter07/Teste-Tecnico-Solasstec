@@ -10,7 +10,7 @@ GET {{baseUrl}}/health
 ### Visitantes: lista visitantes ativos com paginacao padrao
 GET {{baseUrl}}/visitors
 
-### Visitantes: busca por nome ou documento
+### Visitantes: busca por nome, CPF ou RG
 GET {{baseUrl}}/visitors?search=Visitante&limit=15&page=1
 
 ### Visitantes: busca um visitante pelo CPF do seed
@@ -110,6 +110,9 @@ GET {{baseUrl}}/holidays
 ### Feriados: busca feriado por descricao ou data
 GET {{baseUrl}}/holidays?search=Natal&limit=15&page=1
 
+### Feriados: lista feriados ativos por intervalo mensal
+GET {{baseUrl}}/holidays?dateFrom=2026-12-01&dateTo=2026-12-31&limit=100&page=1
+
 ### Feriados: cria um feriado para testar POST
 # Se essa data ja existir no seu banco, altere @holidayDate para uma data livre.
 # @name createHoliday
@@ -142,8 +145,14 @@ GET {{baseUrl}}/appointments
 ### Agendamentos: lista historico completo, incluindo cancelados/inativos
 GET {{baseUrl}}/appointments?includeInactive=true&limit=15&page=1
 
-### Agendamentos: busca agendamentos por visitante, CPF ou sala
+### Agendamentos: busca agendamentos por visitante, CPF, RG ou sala
 GET {{baseUrl}}/appointments?search=Visitante&limit=15&page=1
+
+### Agendamentos: consulta historico completo por visitante
+GET {{baseUrl}}/appointments?visitorId=1&includeInactive=true&limit=15&page=1
+
+### Agendamentos: consulta historico completo por sala
+GET {{baseUrl}}/appointments?roomId=1&includeInactive=true&limit=15&page=1
 
 ### Agendamentos: consulta horarios disponiveis da sala criada para uma segunda-feira
 GET {{baseUrl}}/appointments/availability?roomId={{createRoom.response.body.$.id}}&date=2026-08-31&visitorId={{createVisitor.response.body.$.id}}
@@ -181,6 +190,14 @@ Content-Type: application/json
 
 {
   "status": 2
+}
+
+### Agendamentos: tenta voltar confirmado para pendente e deve retornar erro
+PATCH {{baseUrl}}/appointments/{{createAppointment.response.body.$.id}}/status
+Content-Type: application/json
+
+{
+  "status": 1
 }
 
 ### Agendamentos: cancela o agendamento criado, preservando historico

@@ -15,7 +15,7 @@ import { parseBooleanQuery } from '@/common/dto/parse-boolean-query';
 
 export class ListAppointmentsQueryDto extends PaginationQueryDto {
   @ApiPropertyOptional({
-    description: 'Busca por visitante, documento ou sala',
+    description: 'Busca por visitante, CPF, RG ou sala',
   })
   @IsString()
   @MaxLength(100)

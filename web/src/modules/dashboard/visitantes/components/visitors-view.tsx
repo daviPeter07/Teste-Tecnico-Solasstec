@@ -4,6 +4,7 @@ import { ConfirmDeleteModal } from "@/modules/dashboard/shared/components/confir
 import { PageHeader } from "@/modules/dashboard/shared/components/page-header";
 import { useVisitorModal } from "../hooks/use-visitor-modal";
 import { useDeleteVisitor } from "../services/visitors-service";
+import { VisitorAppointmentHistoryModal } from "./visitor-appointment-history-modal";
 import { VisitorFormModal } from "./visitor-form";
 import { VisitorList } from "./visitor-list";
 
@@ -18,6 +19,10 @@ export function VisitorsView() {
     setDeleteOpen,
     visitorToDelete,
     openDelete,
+    historyOpen,
+    setHistoryOpen,
+    visitorToShowHistory,
+    openHistory,
   } = useVisitorModal();
   const deleteVisitor = useDeleteVisitor();
 
@@ -32,6 +37,7 @@ export function VisitorsView() {
         onEditVisitor={openEdit}
         onCreateVisitor={openCreate}
         onDeleteVisitor={openDelete}
+        onShowHistory={openHistory}
       />
       {open && (
         <VisitorFormModal
@@ -44,14 +50,23 @@ export function VisitorsView() {
         <ConfirmDeleteModal
           open={deleteOpen}
           onOpenChange={setDeleteOpen}
-          title="Excluir visitante"
-          description={`Tem certeza que deseja excluir o cadastro de "${visitorToDelete?.name ?? "este visitante"}"? Esta ação não poderá ser desfeita.`}
+          title="Inativar visitante"
+          description={`Tem certeza que deseja inativar o cadastro de "${visitorToDelete?.name ?? "este visitante"}"? O registro sairá da lista principal e ficará disponível em Inativos.`}
           isLoading={deleteVisitor.isPending}
+          confirmLabel="Confirmar inativação"
+          loadingLabel="Inativando..."
           onConfirm={async () => {
             if (!visitorToDelete) return;
             await deleteVisitor.mutateAsync(visitorToDelete.id);
             setDeleteOpen(false);
           }}
+        />
+      )}
+      {historyOpen && visitorToShowHistory && (
+        <VisitorAppointmentHistoryModal
+          open={historyOpen}
+          onOpenChange={setHistoryOpen}
+          visitor={visitorToShowHistory}
         />
       )}
     </div>

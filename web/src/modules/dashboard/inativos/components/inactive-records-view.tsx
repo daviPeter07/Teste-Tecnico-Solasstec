@@ -188,7 +188,7 @@ export function InactiveRecordsView() {
               <Trash2 aria-hidden="true" className="mr-2 size-4" />
               Excluir selecionados
             </Button>
-            <Button
+            <Button 
               type="button"
               variant="destructive"
               className="rounded-none"
